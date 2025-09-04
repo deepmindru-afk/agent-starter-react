@@ -22,9 +22,6 @@ export interface AppConfig {
   accent?: string;
   logoDark?: string;
   accentDark?: string;
-
-  sandboxId?: string;
-  agentName?: string;
 }
 
 export interface SandboxConfig {
