@@ -64,10 +64,10 @@ export const SessionView = ({
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href="https://docs.livekit.io/agents/start/voice-ai/"
+                  href="https://www.portalos.ru"
                   className="whitespace-nowrap underline"
                 >
-                  See quickstart guide
+                  АО Портал
                 </a>
                 .
               </p>
@@ -158,7 +158,7 @@ export const SessionView = ({
                 )}
               >
                 <p className="animate-text-shimmer inline-block !bg-clip-text text-sm font-semibold text-transparent">
-                  Agent is listening, ask it a question
+                  Агент на связи
                 </p>
               </motion.div>
             )}
