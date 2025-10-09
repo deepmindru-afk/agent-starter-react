@@ -3,13 +3,13 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import type { AppConfig } from '@/app-config';
+import { ChatTranscript } from '@/components/app/chat-transcript';
+import { PreConnectMessage } from '@/components/app/preconnect-message';
 import { TileLayout } from '@/components/app/tile-layout';
 import {
   AgentControlBar,
   type ControlBarControls,
 } from '@/components/livekit/agent-control-bar/agent-control-bar';
-import { ChatTranscript } from '@/components/livekit/chat-transcript';
-import { PreConnectMessage } from '@/components/livekit/preconnect-message';
 import { useChatMessages } from '@/hooks/useChatMessages';
 import { useConnectionTimeout } from '@/hooks/useConnectionTimout';
 import { useDebugMode } from '@/hooks/useDebug';
@@ -92,6 +92,7 @@ export const SessionView = ({
         <Fade top className="absolute inset-x-4 top-0 h-40" />
         <ScrollArea className="px-4 pt-40 pb-[150px] md:px-6 md:pb-[180px]">
           <ChatTranscript
+            hideName
             hidden={!chatOpen}
             messages={messages}
             className="mx-auto max-w-2xl space-y-3 transition-opacity duration-300 ease-out"
