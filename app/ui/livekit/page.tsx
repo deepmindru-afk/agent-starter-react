@@ -2,7 +2,6 @@ import { Track } from 'livekit-client';
 import { AgentControlBar } from '@/components/livekit/agent-control-bar/agent-control-bar';
 import { TrackDeviceSelect } from '@/components/livekit/track-device-select';
 import { TrackToggle } from '@/components/livekit/track-toggle';
-import { AppConfig } from '@/lib/types';
 import { Container } from '../container';
 
 export default function LiveKit() {
