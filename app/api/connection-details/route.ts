@@ -13,7 +13,7 @@ type ConnectionDetails = {
 const API_KEY = process.env.LIVEKIT_API_KEY;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
 const LIVEKIT_URL = process.env.LIVEKIT_URL;
-
+const AGENT_NAME = process.env.AGENT_NAME;
 // don't cache the results
 export const revalidate = 0;
 
@@ -28,10 +28,12 @@ export async function POST(req: Request) {
     if (API_SECRET === undefined) {
       throw new Error('LIVEKIT_API_SECRET is not defined');
     }
-
+    if (AGENT_NAME === undefined) {
+      const AGENT_NAME='koleso-inbound-agent';
+    }
     // Parse agent configuration from request body
     //const body = await req.json();
-    const agentName: string = 'koleso-inbound-agent'; //body?.room_config?.agents?.[0]?.agent_name;
+    const agentName: string = AGENT_NAME; //body?.room_config?.agents?.[0]?.agent_name;
 
     // Generate participant token
     const participantName = 'user';
