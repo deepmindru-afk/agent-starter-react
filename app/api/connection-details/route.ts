@@ -31,7 +31,7 @@ export async function POST(req: Request) {
 
     // Parse agent configuration from request body
     const body = await req.json();
-    const agentName: string = body?.room_config?.agents?.[0]?.agent_name;
+    const agentName: string = "koleso-inbound-agent" //body?.room_config?.agents?.[0]?.agent_name;
 
     // Generate participant token
     const participantName = 'user';
