@@ -87,7 +87,7 @@ function createParticipantToken(
   //  at.roomConfig = new RoomConfiguration({
   //    agents: [{ agentName }],
   //  });
-  }
+  //}
 
   return at.toJwt();
 }
