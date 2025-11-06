@@ -28,15 +28,15 @@ export async function POST(req: Request) {
     if (API_SECRET === undefined) {
       throw new Error('LIVEKIT_API_SECRET is not defined');
     }
-    if (AGENT_NAME === undefined) {
-      const AGENT_NAME = 'koleso-inbound-agent';
-    }
+    //if (AGENT_NAME === undefined) {
+    //  const AGENT_NAME = 'koleso-inbound-agent';
+    //}
     // Parse agent configuration from request body
     //const body = await req.json();
     //const agentName: string = AGENT_NAME; //body?.room_config?.agents?.[0]?.agent_name;
     const agentName = AGENT_NAME;
     // Generate participant token
-    const participantName = 'user';
+    const participantName = `voice_assistant_user_${Math.floor(Math.random() * 10_000)}`;;
     const participantIdentity = `voice_assistant_user_${Math.floor(Math.random() * 10_000)}`;
     const roomName = `voice_assistant_room_${Math.floor(Math.random() * 10_000)}`;
 
