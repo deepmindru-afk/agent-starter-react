@@ -13,7 +13,7 @@ type ConnectionDetails = {
 const API_KEY = process.env.LIVEKIT_API_KEY;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
 const LIVEKIT_URL = process.env.LIVEKIT_URL;
-const AGENT_NAME = process.env.AGENT_NAME;
+//const AGENT_NAME = process.env.AGENT_NAME;
 // don't cache the results
 export const revalidate = 0;
 
@@ -28,13 +28,13 @@ export async function POST(req: Request) {
     if (API_SECRET === undefined) {
       throw new Error('LIVEKIT_API_SECRET is not defined');
     }
-    if (AGENT_NAME === undefined) {
-      const AGENT_NAME = 'portal-agent';
-    }
+    //if (AGENT_NAME === undefined) {
+    //  const AGENT_NAME = 'portal-agent';
+    //}
     // Parse agent configuration from request body
     //const body = await req.json();
     //const agentName: string = AGENT_NAME; //body?.room_config?.agents?.[0]?.agent_name;
-    const agentName = AGENT_NAME;
+    //const agentName = AGENT_NAME;
     
     // Generate participant token
     const participantName = `voice_assistant_user_${Math.floor(Math.random() * 10_000)}`;;
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
 function createParticipantToken(
   userInfo: AccessTokenOptions,
   roomName: string,
-  agentName?: string
+  //agentName?: string
 ): Promise<string> {
   const at = new AccessToken(API_KEY, API_SECRET, {
     ...userInfo,
