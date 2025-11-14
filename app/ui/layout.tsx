@@ -12,9 +12,9 @@ export default async function ComponentsLayout({ children }: { children: React.R
       <div className="bg-muted/20 min-h-svh p-8">
         <div className="mx-auto max-w-3xl space-y-8">
           <header className="space-y-2">
-            <h1 className="text-5xl font-bold tracking-tight">LiveKit UI</h1>
+            <h1 className="text-5xl font-bold tracking-tight">UI</h1>
             <p className="text-muted-foreground max-w-80 leading-tight text-pretty">
-              A set of UI components for building LiveKit-powered voice experiences.
+              A set of UI components for building voice experiences.
             </p>
             <p className="text-muted-foreground max-w-prose text-balance">
               Built with{' '}
@@ -26,8 +26,8 @@ export default async function ComponentsLayout({ children }: { children: React.R
                 Motion
               </a>
               , and{' '}
-              <a href="https://livekit.io" className="underline underline-offset-2">
-                LiveKit
+              <a href="https://www.portalos.ru" className="underline underline-offset-2">
+                Portal
               </a>
               .
             </p>
