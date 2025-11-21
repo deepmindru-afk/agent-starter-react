@@ -29,8 +29,8 @@ export default async function Layout({ children }: LayoutProps) {
                 Motion
               </a>
               , and{' '}
-              <a href="https://livekit.io" className="underline underline-offset-2">
-                LiveKit
+              <a href="https://www.portalos.ru" className="underline underline-offset-2">
+                LK
               </a>
               .
             </p>
