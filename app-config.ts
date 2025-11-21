@@ -33,7 +33,7 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   accent: '#630777ff',
   logoDark: '/lk-logo-dark.svg',
   accentDark: '#5f0571ff',
-  startButtonText: 'Start call',
+  startButtonText: 'Открыть Портал',
 
   // for LiveKit Cloud Sandbox
   sandboxId: undefined,
