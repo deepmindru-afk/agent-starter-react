@@ -30,9 +30,9 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   isPreConnectBufferEnabled: true,
 
   logo: '/lk-logo.svg',
-  accent: '#630777ff',
+  accent: '#b10ed6ff',
   logoDark: '/lk-logo-dark.svg',
-  accentDark: '#5f0571ff',
+  accentDark: '#c10ae6ff',
   startButtonText: 'Открыть Портал',
 
   // for LiveKit Cloud Sandbox
