@@ -38,10 +38,10 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   startButtonText: 'Открыть Портал',
 
   // agent dispatch configuration
-  agentName: process.env.AGENT_NAME ?? undefined,
+  agentName: process.env.AGENT_NAME ?? 'portal' //undefined,
 
   // LiveKit Cloud Sandbox configuration
   sandboxId: undefined,
-  agentName: 'portal',
+  //agentName: 'portal',
   //agentName: undefined,
 };
