@@ -14,9 +14,11 @@ export interface AppConfig {
   logoDark?: string;
   accentDark?: string;
 
-  // for LiveKit Cloud Sandbox
-  sandboxId?: string;
+  // agent dispatch configuration
   agentName?: string;
+
+  // LiveKit Cloud Sandbox configuration
+  sandboxId?: string;
 }
 
 export const APP_CONFIG_DEFAULTS: AppConfig = {
@@ -35,7 +37,10 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   accentDark: '#c10ae6ff',
   startButtonText: 'Открыть Портал',
 
-  // for LiveKit Cloud Sandbox
+  // agent dispatch configuration
+  agentName: process.env.AGENT_NAME ?? undefined,
+
+  // LiveKit Cloud Sandbox configuration
   sandboxId: undefined,
   agentName: 'portal',
   //agentName: undefined,
