@@ -1,4 +1,4 @@
-import { Button } from '@/components/livekit/button';
+import { Button } from '@/components/ui/button';
 
 function WelcomeImage() {
   return (
@@ -37,7 +37,11 @@ export const WelcomeView = ({
           Говорите с Вашим агентом голосом, в чате, показывайте изображения с камеры
         </p>
 
-        <Button variant="primary" size="lg" onClick={onStartCall} className="mt-6 w-64 font-mono">
+        <Button
+          size="lg"
+          onClick={onStartCall}
+          className="mt-6 w-64 rounded-full font-mono text-xs font-bold tracking-wider uppercase"
+        >
           {startButtonText}
         </Button>
       </section>
