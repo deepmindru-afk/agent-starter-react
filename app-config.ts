@@ -34,14 +34,13 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   logo: '/lk-logo.svg',
   accent: '#b10ed6ff',
   logoDark: '/lk-logo-dark.svg',
-  accentDark: '#c10ae6ff',
+  accentDark: 'rgb(169, 5, 202)',
   startButtonText: 'Открыть Портал',
 
   // agent dispatch configuration
   agentName: process.env.AGENT_NAME ?? undefined,
+  //agentName: 'portal', agentName: undefined,
 
   // LiveKit Cloud Sandbox configuration
   sandboxId: undefined,
-  //agentName: 'portal',
-  //agentName: undefined,
 };
