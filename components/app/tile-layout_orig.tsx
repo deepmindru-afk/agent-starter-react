@@ -8,8 +8,7 @@ import {
   useTracks,
   useVoiceAssistant,
 } from '@livekit/components-react';
-//import { AgentAudioVisualizerBar } from '@/components/agents-ui/agent-audio-visualizer-bar';
-import { AgentAudioVisualizerAura } from '@/components/agents-ui/agent-audio-visualizer-aura';
+import { AgentAudioVisualizerBar } from '@/components/agents-ui/agent-audio-visualizer-bar';
 import { cn } from '@/lib/shadcn/utils';
 
 const MotionContainer = motion.create('div');
@@ -108,11 +107,41 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
             <AnimatePresence mode="popLayout">
               {!isAvatar && (
                 // Audio Agent
-                <AgentAudioVisualizerAura
-                  size="xl"
-                  state="speaking"
-                  audioTrack={agentAudioTrack}
-                />
+                <MotionContainer
+                  key="agent"
+                  layoutId="agent"
+                  initial={{
+                    opacity: 0,
+                    scale: 0,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    scale: chatOpen ? 1 : 4,
+                  }}
+                  transition={{
+                    ...ANIMATION_TRANSITION,
+                    delay: animationDelay,
+                  }}
+                  className={cn(
+                    'bg-background aspect-square h-[90px] rounded-md border border-transparent transition-[border,drop-shadow]',
+                    chatOpen && 'border-input/50 drop-shadow-lg/10 delay-200'
+                  )}
+                >
+                  <AgentAudioVisualizerBar
+                    barCount={5}
+                    state={agentState}
+                    audioTrack={agentAudioTrack}
+                    className={cn('flex h-full items-center justify-center gap-1 px-4 py-2')}
+                  >
+                    <span
+                      className={cn([
+                        'bg-muted min-h-2.5 w-2.5 rounded-full',
+                        'origin-center transition-colors duration-250 ease-linear',
+                        'data-[lk-highlighted=true]:bg-foreground data-[lk-muted=true]:bg-muted',
+                      ])}
+                    />
+                  </AgentAudioVisualizerBar>
+                </MotionContainer>
               )}
 
               {isAvatar && (
