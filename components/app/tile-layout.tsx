@@ -8,7 +8,6 @@ import {
   useTracks,
   useVoiceAssistant,
 } from '@livekit/components-react';
-//import { AgentAudioVisualizerBar } from '@/components/agents-ui/agent-audio-visualizer-bar';
 import { AgentAudioVisualizerAura } from '@/components/agents-ui/agent-audio-visualizer-aura';
 import { cn } from '@/lib/shadcn/utils';
 
@@ -123,16 +122,16 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
                     ...ANIMATION_TRANSITION,
                     delay: animationDelay,
                   }}
-                  //className={cn(
-                  //  'bg-background aspect-square h-[90px] rounded-md border border-transparent transition-[border,drop-shadow]',
-                  //  chatOpen && 'border-input/50 drop-shadow-lg/10 delay-200'
-                  //)}
+                //className={cn(
+                //  'bg-background aspect-square h-[90px] rounded-md border border-transparent transition-[border,drop-shadow]',
+                //  chatOpen && 'border-input/50 drop-shadow-lg/10 delay-200'
+                //)}
                 >
-                <AgentAudioVisualizerAura
-                  size="lg"
-                  state="connecting"
-                  audioTrack={agentAudioTrack}
-                />
+                  <AgentAudioVisualizerAura
+                    size="lg"
+                    state="connecting"
+                    audioTrack={agentAudioTrack}
+                  />
                 </MotionContainer>
               )}
               {isAvatar && (
