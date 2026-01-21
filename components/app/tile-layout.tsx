@@ -118,18 +118,19 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
                     opacity: 1,
                     scale: chatOpen ? 1 : 4,
                   }}
-                  //transition={{
-                  //  ...ANIMATION_TRANSITION,
-                  //  delay: animationDelay,
-                  //}}
-                className={cn(
-                  'bg-background aspect-square h-[90px] rounded-md border border-transparent transition-[border,drop-shadow]',
-                  chatOpen && 'border-input/50 drop-shadow-lg/10 delay-200'
-                )}
+                  transition={{
+                    ...ANIMATION_TRANSITION,
+                    delay: animationDelay,
+                  }}
+                  //className={cn(
+                  //  'bg-background aspect-square h-[90px] rounded-md border border-transparent transition-[border,drop-shadow]',
+                  //  chatOpen && 'border-input/50 drop-shadow-lg/10 delay-200'
+                  //)}
                 >
                   <AgentAudioVisualizerAura
                     size="md"
                     state={agentState}
+                    colorShift={0.29}
                     audioTrack={agentAudioTrack}
                   />
                 </MotionContainer>

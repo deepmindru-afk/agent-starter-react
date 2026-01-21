@@ -374,7 +374,7 @@ export interface AgentAudioVisualizerAuraProps {
   state?: AgentState;
   /**
    * The color of the aura in hex format.
-   * @defaultValue '#cd13c6'
+   * @defaultValue '#a60da1'
    */
   color?: string;
   /**
