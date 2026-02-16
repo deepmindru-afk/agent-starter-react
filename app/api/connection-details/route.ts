@@ -17,27 +17,6 @@ const LIVEKIT_URL = process.env.LIVEKIT_URL;
 // don't cache the results
 export const revalidate = 0;
 
-
-const getRoomId = (): string => {
-  const roomFromUrl = new URLSearchParams(window.location.search).get('room');
-  
-  if (roomFromUrl) {
-    return roomFromUrl;
-  }
-  
-  // Генерируем новый ID
-  const newRoomId = `va_room_${Math.floor(Math.random() * 10_000)}`;
-  
-  // Опционально: обновляем URL без перезагрузки страницы
-  const url = new URL(window.location.href);
-  url.searchParams.set('room', newRoomId);
-  window.history.replaceState({}, '', url.toString());
-  
-  return newRoomId;
-};
-
-
-
 export async function POST(req: Request) {
   try {
     if (LIVEKIT_URL === undefined) {
@@ -55,12 +34,11 @@ export async function POST(req: Request) {
     const agentName: string = body?.room_config?.agents?.[0]?.agent_name;
     
     //const participantCurr=`portal_${Math.floor(Math.random() * 10_000)}`
-    
+
     // Generate participant token
     const participantName = `va_user_${Math.floor(Math.random() * 10_000)}`;
     const participantIdentity = `va_user_${Math.floor(Math.random() * 10_000)}`;
-    //const roomName = `va_room_${Math.floor(Math.random() * 10_000)}`;
-    const roomName = getRoomId();
+    const roomName = `va_room_${Math.floor(Math.random() * 10_000)}`;
 
     const participantToken = await createParticipantToken(
       { identity: participantIdentity, name: participantName },
