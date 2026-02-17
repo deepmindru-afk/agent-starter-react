@@ -34,11 +34,12 @@ export async function POST(req: Request) {
     const agentName: string = body?.room_config?.agents?.[0]?.agent_name;
     
     //const participantCurr=`portal_${Math.floor(Math.random() * 10_000)}`
-
+    
     // Generate participant token
     const participantName = `va_user_${Math.floor(Math.random() * 10_000)}`;
     const participantIdentity = `va_user_${Math.floor(Math.random() * 10_000)}`;
-    const roomName = `va_room_${Math.floor(Math.random() * 10_000)}`;
+    //const roomName = `va_room_${Math.floor(Math.random() * 10_000)}`;
+    const roomName: string = body?.room_name;
 
     const participantToken = await createParticipantToken(
       { identity: participantIdentity, name: participantName },

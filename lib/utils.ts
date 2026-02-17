@@ -102,6 +102,7 @@ export function getSandboxTokenSource(appConfig: AppConfig) {
     const roomConfig = appConfig.agentName
       ? {
           agents: [{ agent_name: appConfig.agentName }],
+          
         }
       : undefined;
 
@@ -114,6 +115,7 @@ export function getSandboxTokenSource(appConfig: AppConfig) {
         },
         body: JSON.stringify({
           room_config: roomConfig,
+          room_name:"adsadsdas"
         }),
       });
       return await res.json();

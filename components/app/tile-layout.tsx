@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { useTheme } from 'next-themes';
 import { Track } from 'livekit-client';
 import { AnimatePresence, motion } from 'motion/react';
 import {
@@ -9,8 +8,7 @@ import {
   useTracks,
   useVoiceAssistant,
 } from '@livekit/components-react';
-import { AppConfig } from '@/app-config';
-import { AudioVisualizer } from '@/components/app/audio-visualizer';
+import { AgentAudioVisualizerAura } from '@/components/agents-ui/agent-audio-visualizer-aura';
 import { cn } from '@/lib/shadcn/utils';
 
 const MotionContainer = motion.create('div');
@@ -73,12 +71,14 @@ export function useLocalTrackRef(source: Track.Source) {
 
 interface TileLayoutProps {
   chatOpen: boolean;
-  appConfig: AppConfig;
 }
 
-export function TileLayout({ chatOpen, appConfig }: TileLayoutProps) {
-  const { resolvedTheme } = useTheme();
-  const { videoTrack: agentVideoTrack } = useVoiceAssistant();
+export function TileLayout({ chatOpen }: TileLayoutProps) {
+  const {
+    state: agentState,
+    audioTrack: agentAudioTrack,
+    videoTrack: agentVideoTrack,
+  } = useVoiceAssistant();
   const [screenShareTrack] = useTracks([Track.Source.ScreenShare]);
   const cameraTrack: TrackReference | undefined = useLocalTrackRef(Track.Source.Camera);
 
@@ -92,7 +92,7 @@ export function TileLayout({ chatOpen, appConfig }: TileLayoutProps) {
   const videoHeight = agentVideoTrack?.publication.dimensions?.height ?? 0;
 
   return (
-    <div className="fixed inset-x-0 top-8 bottom-32 z-50 md:top-12 md:bottom-40">
+    <div className="pointer-events-none fixed inset-x-0 top-8 bottom-32 z-50 md:top-12 md:bottom-40">
       <div className="relative mx-auto h-full max-w-2xl px-4 md:px-0">
         <div className={cn(classNames.grid)}>
           {/* Agent */}
