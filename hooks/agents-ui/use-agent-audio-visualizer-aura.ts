@@ -14,12 +14,12 @@ import {
   useTrackVolume,
 } from '@livekit/components-react';
 
-const DEFAULT_SPEED = 10;
+const DEFAULT_SPEED = 11;
 const DEFAULT_AMPLITUDE = 2;
-const DEFAULT_FREQUENCY = 0.5;
-const DEFAULT_SCALE = 0.2;
-const DEFAULT_BRIGHTNESS = 1.5;
-const DEFAULT_TRANSITION: ValueAnimationTransition = { duration: 0.5, ease: 'easeOut' };
+const DEFAULT_FREQUENCY = 0.7;
+const DEFAULT_SCALE = 0.3;
+const DEFAULT_BRIGHTNESS = 1.7;
+const DEFAULT_TRANSITION: ValueAnimationTransition = { duration: 0.7, ease: 'easeOut' };
 const DEFAULT_PULSE_TRANSITION: ValueAnimationTransition = {
   duration: 0.35,
   ease: 'easeOut',
