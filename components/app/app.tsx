@@ -33,19 +33,31 @@ export function App({ appConfig }: AppProps) {
       : TokenSource.endpoint('/api/connection-details');
   }, [appConfig]);
 
-  //const roomName = window.location.search.substring(1) ?? `va_room_${Math.floor(Math.random() * 10_000)}`;
-    //`va_room_${Math.floor(Math.random() * 10_000)}${window.location.search.substring(1)}` : 
-    //`va_room_${Math.floor(Math.random() * 10_000)}`;
   
+  //const searchParams = window.location.search.trim();
+  //const roomName = searchParams ? 
+  //    `${searchParams.substring(1)}` : // Use searchParams without the leading '?'
+  //    `va_room_${Math.floor(Math.random() * 10_000)}`; // Generate random roomName if searchParams is empty
 
-  const searchParams = window.location.search.trim();
-  const roomName = searchParams ? 
-      `${searchParams.substring(1)}` : // Use searchParams without the leading '?'
-      `va_room_${Math.floor(Math.random() * 10_000)}`; // Generate random roomName if searchParams is empty
-
+  const searchParams = new URLSearchParams(window.location.search);
+  const room = searchParams.get('room'); // Извлекаем значение второго параметра
+  const roomName = room || `va_room_${Math.floor(Math.random() * 10_000)}`;
+  
+  const participant = searchParams.get('user'); // Извлекаем значение второго параметра
+  //const participantName = participant || `va_ppuser_${Math.floor(Math.random() * 10_000)}`;
+  const participantIdentity = participant || `va_ppuser_${Math.floor(Math.random() * 10_000)}`;
+  
+  console.log(roomName);
+  console.log(participantIdentity);
+  
   const session = useSession(
     tokenSource,
-    appConfig.agentName ? { agentName: appConfig.agentName, roomName: roomName } : undefined,
+    appConfig.agentName ? {
+      agentName: appConfig.agentName,
+      roomName: roomName,
+      //participantName: participantName,
+      participantIdentity: participantIdentity 
+    } : undefined,
   );
 
   return (
