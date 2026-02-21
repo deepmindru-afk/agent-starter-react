@@ -33,19 +33,37 @@ export function App({ appConfig }: AppProps) {
       : TokenSource.endpoint('/api/connection-details');
   }, [appConfig]);
 
+  const getRoomName = () => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const roomName = searchParams.get('room') || `va_room_${Math.floor(Math.random() * 10_000)}`;
+      return roomName;
+    }
+    return `va_room_${Math.floor(Math.random() * 10_000)}`; // Заглушка для сервера
+  };
+  
+  const getParticipantIdentity = () => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const roomName = searchParams.get('user') || `va_user_${Math.floor(Math.random() * 10_000)}`;
+      return roomName;
+    }
+    return `va_user_${Math.floor(Math.random() * 10_000)}`; // Заглушка для сервера
+  };
+  
+  const roomName = getRoomName();
+  const participantIdentity = getParticipantIdentity();
   
   //const searchParams = window.location.search.trim();
   //const roomName = searchParams ? 
   //    `${searchParams.substring(1)}` : // Use searchParams without the leading '?'
   //    `va_room_${Math.floor(Math.random() * 10_000)}`; // Generate random roomName if searchParams is empty
-
-  const searchParams = new URLSearchParams(window.location.search);
-  const room = searchParams.get('room'); // Извлекаем значение второго параметра
-  const roomName = room || `va_room_${Math.floor(Math.random() * 10_000)}`;
-  
-  const participant = searchParams.get('user'); // Извлекаем значение второго параметра
+  //const searchParams = new URLSearchParams(window.location.search);
+  //const room = searchParams.get('room'); // Извлекаем значение второго параметра
+  //const roomName = room || `va_room_${Math.floor(Math.random() * 10_000)}`;
+  //const participant = searchParams.get('user'); // Извлекаем значение второго параметра
   //const participantName = participant || `va_ppuser_${Math.floor(Math.random() * 10_000)}`;
-  const participantIdentity = participant || `va_ppuser_${Math.floor(Math.random() * 10_000)}`;
+  //const participantIdentity = participant || `va_ppuser_${Math.floor(Math.random() * 10_000)}`;
   
   console.log(roomName);
   console.log(participantIdentity);
