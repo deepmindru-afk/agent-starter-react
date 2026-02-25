@@ -1,14 +1,16 @@
 import React, { useMemo } from 'react';
+import { useTheme } from 'next-themes';
 import { Track } from 'livekit-client';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   type TrackReference,
   VideoTrack,
+  useAgent,
   useLocalParticipant,
   useTracks,
-  useVoiceAssistant,
 } from '@livekit/components-react';
-import { AgentAudioVisualizerAura } from '@/components/agents-ui/agent-audio-visualizer-aura';
+import { AppConfig } from '@/app-config';
+import { AudioVisualizer } from '@/components/app/audio-visualizer';
 import { cn } from '@/lib/shadcn/utils';
 
 const MotionContainer = motion.create('div');
@@ -71,14 +73,12 @@ export function useLocalTrackRef(source: Track.Source) {
 
 interface TileLayoutProps {
   chatOpen: boolean;
+  appConfig: AppConfig;
 }
 
-export function TileLayout({ chatOpen }: TileLayoutProps) {
-  const {
-    state: agentState,
-    audioTrack: agentAudioTrack,
-    videoTrack: agentVideoTrack,
-  } = useVoiceAssistant();
+export function TileLayout({ chatOpen, appConfig }: TileLayoutProps) {
+  const { resolvedTheme } = useTheme();
+  const { cameraTrack: agentVideoTrack } = useAgent();
   const [screenShareTrack] = useTracks([Track.Source.ScreenShare]);
   const cameraTrack: TrackReference | undefined = useLocalTrackRef(Track.Source.Camera);
 
@@ -110,31 +110,39 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
                 <MotionContainer
                   key="agent"
                   layoutId="agent"
-                  //initial={{
-                  //  opacity: 0,
-                  //  scale: 0,
-                  //}}
-                  animate={{
-                    opacity: 0.8,
-                    scale: chatOpen ? 1 : 4,
-                  }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   transition={{
                     ...ANIMATION_TRANSITION,
                     delay: animationDelay,
                   }}
-                  //className={cn(
-                  //  'bg-background aspect-square h-[90px] rounded-md border border-transparent transition-[border,drop-shadow]',
-                  //  chatOpen && 'border-input/50 drop-shadow-lg/10 delay-200'
-                  //)}
+                  className={cn('relative aspect-square h-[90px]')}
                 >
-                  <AgentAudioVisualizerAura
-                    size="md"
-                    state={agentState}
-                    colorShift={0.29}
-                    audioTrack={agentAudioTrack}
+                  <AudioVisualizer
+                    key="audio-visualizer"
+                    initial={{ scale: 1 }}
+                    animate={{ scale: chatOpen ? 0.2 : 1 }}
+                    transition={{
+                      ...ANIMATION_TRANSITION,
+                      delay: animationDelay,
+                    }}
+                    appConfig={appConfig}
+                    isChatOpen={chatOpen}
+                    className={cn(
+                      'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
+                      'bg-background rounded-4xl border border-transparent transition-[border,drop-shadow]',
+                      chatOpen && 'border-input shadow-2xl/10 delay-200'
+                    )}
+                    style={{
+                      color:
+                        resolvedTheme === 'dark'
+                          ? appConfig.audioVisualizerColorDark
+                          : appConfig.audioVisualizerColor,
+                    }}
                   />
                 </MotionContainer>
               )}
+
               {isAvatar && (
                 // Avatar Agent
                 <MotionContainer
