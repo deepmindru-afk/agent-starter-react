@@ -50,7 +50,7 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
 
   // optional: audio visualization configuration
   audioVisualizerColor: '#9f0658',
-  audioVisualizerColorDark: '#1fd5f9',
+  audioVisualizerColorDark: '#f91fdf',
   audioVisualizerType: 'bar',
   audioVisualizerBarCount: 5,
   audioVisualizerType: 'radial',
