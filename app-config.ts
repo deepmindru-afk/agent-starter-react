@@ -33,9 +33,9 @@ export interface AppConfig {
 }
 
 export const APP_CONFIG_DEFAULTS: AppConfig = {
-  companyName: 'Портал',
-  pageTitle: 'Портал Агенты',
-  pageDescription: 'Портал ИИ-агенты',
+  companyName: process.env.COMPANY ?? 'Портал',
+  pageTitle: process.env.TITLE ?? 'Портал Агенты',
+  pageDescription: process.env.DESCRIPTION ?? 'Портал ИИ-агенты',
 
   supportsChatInput: true,
   supportsVideoInput: true,
@@ -46,7 +46,7 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   accent: '#b10ed6ff',
   logoDark: '/lk-logo-dark.svg',
   accentDark: 'rgb(154, 6, 183)',
-  startButtonText: 'Открыть Портал',
+  startButtonText: process.env.BUTTON ?? 'Открыть Портал',
 
   // optional: audio visualization configuration
   audioVisualizerColor: '#9f0658',
