@@ -36,12 +36,13 @@ export async function POST(req: Request) {
     //const participantCurr=`portal_${Math.floor(Math.random() * 10_000)}`
     
     // Generate participant token
-    const participantName = `va_user_${Math.floor(Math.random() * 10_000)}`;
+    //const participantName = `va_user_${Math.floor(Math.random() * 10_000)}`;
     //const participantIdentity = `va_user_${Math.floor(Math.random() * 10_000)}`;
     //const roomName = `va_room_${Math.floor(Math.random() * 10_000)}`;
+
     const roomName: string = body?.room_name;
-    //const participantName: string = body?.participant_name;
     const participantIdentity: string = body?.participant_identity;
+    const participantName: string = body?.participant_name;
 
     const participantToken = await createParticipantToken(
       { identity: participantIdentity, name: participantName },

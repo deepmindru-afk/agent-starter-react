@@ -33,6 +33,7 @@ export function App({ appConfig }: AppProps) {
       : TokenSource.endpoint('/api/connection-details');
   }, [appConfig]);
 
+
   const getRoomName = () => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
@@ -45,14 +46,24 @@ export function App({ appConfig }: AppProps) {
   const getParticipantIdentity = () => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
-      const roomName = searchParams.get('user') || `va_user_${Math.floor(Math.random() * 10_000)}`;
-      return roomName;
+      const participantIdentity = searchParams.get('username') || `va_user_${Math.floor(Math.random() * 10_000)}`;
+      return participantIdentity;
+    }
+    return `va_user_${Math.floor(Math.random() * 10_000)}`; // Заглушка для сервера
+  };
+
+  const getParticipantName = () => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const participantName = searchParams.get('user') || `va_user_${Math.floor(Math.random() * 10_000)}`;
+      return participantName;
     }
     return `va_user_${Math.floor(Math.random() * 10_000)}`; // Заглушка для сервера
   };
   
   const roomName = getRoomName();
   const participantIdentity = getParticipantIdentity();
+  const participantName = getParticipantName();
   
   //const searchParams = window.location.search.trim();
   //const roomName = searchParams ? 
@@ -65,15 +76,16 @@ export function App({ appConfig }: AppProps) {
   //const participantName = participant || `va_ppuser_${Math.floor(Math.random() * 10_000)}`;
   //const participantIdentity = participant || `va_ppuser_${Math.floor(Math.random() * 10_000)}`;
   
-  console.log(roomName);
-  console.log(participantIdentity);
+  //console.log(roomName);
+  //console.log(participantIdentity);
+  //console.log(participantName);
   
   const session = useSession(
     tokenSource,
     appConfig.agentName ? {
       agentName: appConfig.agentName,
       roomName: roomName,
-      //participantName: participantName,
+      participantName: participantName,
       participantIdentity: participantIdentity 
     } : undefined,
   );
