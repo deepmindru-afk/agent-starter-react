@@ -59,7 +59,7 @@ export function useAgentErrors() {
         ),
       });
 
-      end();
+      //end();
     }
   }, [agent, isConnected, end]);
 }
