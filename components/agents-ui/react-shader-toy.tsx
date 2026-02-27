@@ -434,6 +434,13 @@ export interface ReactShaderToyProps {
 
   /** Custom callback to handle warnings. Defaults to `console.warn`. */
   onWarning?: (warning: string) => void;
+
+  /**
+   * When true, the animation loop runs even when the canvas is not visible in the viewport.
+   * When false (default), animation runs only while visible (uses Intersection Observer),
+   * reducing CPU/GPU usage when the shader is off-screen.
+   */
+  animateWhenNotVisible?: boolean;
 }
 
 export function ReactShaderToy({
@@ -450,6 +457,7 @@ export function ReactShaderToy({
   onDoneLoadingTextures,
   onError = console.error,
   onWarning = console.warn,
+  animateWhenNotVisible = false,
   ...canvasProps
 }: ReactShaderToyProps & ComponentPropsWithoutRef<'canvas'>) {
   // Refs for WebGL state
@@ -459,6 +467,9 @@ export function ReactShaderToy({
   const shaderProgramRef = useRef<WebGLProgram | null>(null);
   const vertexPositionAttributeRef = useRef<number | undefined>(undefined);
   const animFrameIdRef = useRef<number | undefined>(undefined);
+  const initFrameIdRef = useRef<number | undefined>(undefined);
+  const isVisibleRef = useRef(true);
+  const animateWhenNotVisibleRef = useRef(animateWhenNotVisible);
   const mousedownRef = useRef(false);
   const canvasPositionRef = useRef<DOMRect | undefined>(undefined);
   const timerRef = useRef(0);
@@ -818,7 +829,9 @@ export function ReactShaderToy({
       mouseValue[0] = lerpVal(currentX, lastMouseArrRef.current[0] ?? 0, lerp);
       mouseValue[1] = lerpVal(currentY, lastMouseArrRef.current[1] ?? 0, lerp);
     }
-    animFrameIdRef.current = requestAnimationFrame(drawScene);
+    if (animateWhenNotVisibleRef.current || isVisibleRef.current) {
+      animFrameIdRef.current = requestAnimationFrame(drawScene);
+    }
   };
 
   const addEventListeners = () => {
@@ -866,6 +879,33 @@ export function ReactShaderToy({
     propsUniformsRef.current = propUniforms;
   }, [propUniforms]);
 
+  useEffect(() => {
+    animateWhenNotVisibleRef.current = animateWhenNotVisible;
+    if (animateWhenNotVisible) {
+      isVisibleRef.current = true;
+    }
+  }, [animateWhenNotVisible]);
+
+  // Intersection Observer: pause animation when off-screen when animateWhenNotVisible is false
+  useEffect(() => {
+    if (animateWhenNotVisible || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          isVisibleRef.current = entry.isIntersecting;
+          if (entry.isIntersecting) {
+            requestAnimationFrame(drawScene);
+          }
+        }
+      },
+      { threshold: 0 }
+    );
+    observer.observe(canvas);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [animateWhenNotVisible]);
+
   // Main effect for initialization and cleanup
   useEffect(() => {
     const textures = texturesArrRef.current;
@@ -891,7 +931,7 @@ export function ReactShaderToy({
       }
     }
 
-    requestAnimationFrame(init);
+    initFrameIdRef.current = requestAnimationFrame(init);
 
     // Cleanup function
     return () => {
@@ -908,6 +948,7 @@ export function ReactShaderToy({
         shaderProgramRef.current = null;
       }
       removeEventListeners();
+      cancelAnimationFrame(initFrameIdRef.current ?? 0);
       cancelAnimationFrame(animFrameIdRef.current ?? 0);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
