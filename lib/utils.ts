@@ -116,8 +116,8 @@ export function getSandboxTokenSource(appConfig: AppConfig) {
         body: JSON.stringify({
           room_config: roomConfig,
           room_name: "none",
-          participant_identity: "none",
           participant_name: "none",
+          participant_identity: "none",
         }),
       });
       return await res.json();
