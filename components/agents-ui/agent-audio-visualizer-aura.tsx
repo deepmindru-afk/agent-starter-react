@@ -21,6 +21,18 @@ import { useAgentAudioVisualizerAura } from '@/hooks/agents-ui/use-agent-audio-v
 import { cn } from '@/lib/shadcn/utils';
 
 const DEFAULT_COLOR = '#940b66';
+/**
+ * @license
+ *
+ * Originally developed for Unicorn Studio
+ * https://unicorn.studio
+ *
+ * Licensed under the Polyform Non-Resale License 1.0.0
+ * https://polyformproject.org/licenses/non-resale/1.0.0/
+ *
+ * © 2026 UNCRN LLC
+ */
+
 
 function hexToRgb(hexColor: string) {
   try {
@@ -248,10 +260,10 @@ interface AuraShaderProps {
   blur?: number;
 
   /**
-   * Color of the aura
+   * Color of the aura in hexidecimal format.
    * @default '#1FD5F9'
    */
-  color?: string;
+  color?: `#${string}`;
 
   /**
    * Color variation across layers (0-1)
@@ -373,10 +385,15 @@ export interface AgentAudioVisualizerAuraProps {
    */
   state?: AgentState;
   /**
+<<<<<<< HEAD
    * The color of the aura in hex format.
    * @defaultValue '#a60da1'
+=======
+   * The color of the aura in hexidecimal format.
+   * @defaultValue '#1FD5F9'
+>>>>>>> upstream/main
    */
-  color?: string;
+  color?: `#${string}`;
   /**
    * The color shift of the aura.
    * @defaultValue 0.05
@@ -439,11 +456,12 @@ export function AgentAudioVisualizerAura({
       amplitude={amplitude}
       frequency={frequency}
       brightness={brightness}
-      className={cn(
-        AgentAudioVisualizerAuraVariants({ size }),
-        'overflow-hidden rounded-full',
-        className,
-      )}
+      //className={cn(
+      //  AgentAudioVisualizerAuraVariants({ size }),
+      //  'overflow-hidden rounded-full',
+      //  className,
+      //)}
+      className={cn(AgentAudioVisualizerAuraVariants({ size }), className)}
       {...props}
     />
   );

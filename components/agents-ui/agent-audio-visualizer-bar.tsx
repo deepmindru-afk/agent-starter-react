@@ -46,7 +46,7 @@ function cloneSingleChild(
 export const AgentAudioVisualizerBarElementVariants = cva(
   [
     'rounded-full transition-colors duration-250 ease-linear',
-    'bg-transparent data-[lk-highlighted=true]:bg-current',
+    'bg-current/10 data-[lk-highlighted=true]:bg-current',
   ],
   {
     variants: {
@@ -94,6 +94,10 @@ export interface AgentAudioVisualizerBarProps {
    */
   state?: AgentState;
   /**
+   * The color of the bars in hexidecimal format.
+   */
+  color?: `#${string}`;
+  /**
    * The number of bars to display in the visualizer.
    * If not provided, defaults based on size: 3 for 'icon'/'sm', 5 for others.
    */
@@ -132,10 +136,12 @@ export interface AgentAudioVisualizerBarProps {
 export function AgentAudioVisualizerBar({
   size = 'md',
   state = 'connecting',
+  color,
   barCount,
   audioTrack,
   className,
   children,
+  style,
   ...props
 }: AgentAudioVisualizerBarProps &
   VariantProps<typeof AgentAudioVisualizerBarVariants> &
@@ -192,6 +198,7 @@ export function AgentAudioVisualizerBar({
   return (
     <div
       data-lk-state={state}
+      style={{ ...style, color } as CSSProperties}
       className={cn(AgentAudioVisualizerBarVariants({ size }), className)}
       {...props}
     >

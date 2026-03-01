@@ -18,6 +18,12 @@ const LIVEKIT_URL = process.env.LIVEKIT_URL;
 export const revalidate = 0;
 
 export async function POST(req: Request) {
+  if (process.env.NODE_ENV !== 'development') {
+    throw new Error(
+      'THIS API ROUTE IS INSECURE. DO NOT USE THIS ROUTE IN PRODUCTION WITHOUT AN AUTHENTICATION LAYER.'
+    );
+  }
+
   try {
     if (LIVEKIT_URL === undefined) {
       throw new Error('LIVEKIT_URL is not defined');
@@ -29,12 +35,15 @@ export async function POST(req: Request) {
       throw new Error('LIVEKIT_API_SECRET is not defined');
     }
 
-    // Parse agent configuration from request body
+    // Parse room config from request body.
     const body = await req.json();
-    const agentName: string = body?.room_config?.agents?.[0]?.agent_name;
+    //const agentName: string = body?.room_config?.agents?.[0]?.agent_name;
     
     //const participantCurr=`portal_${Math.floor(Math.random() * 10_000)}`
     
+    // Recreate the RoomConfiguration object from JSON object.
+    const roomConfig = RoomConfiguration.fromJson(body?.room_config, { ignoreUnknownFields: true });
+
     // Generate participant token
     //const participantName = `va_user_${Math.floor(Math.random() * 10_000)}`;
     //const participantIdentity = `va_user_${Math.floor(Math.random() * 10_000)}`;
@@ -47,15 +56,15 @@ export async function POST(req: Request) {
     const participantToken = await createParticipantToken(
       { identity: participantIdentity, name: participantName },
       roomName,
-      agentName
+      roomConfig
     );
 
     // Return connection details
     const data: ConnectionDetails = {
       serverUrl: LIVEKIT_URL,
       roomName,
-      participantToken: participantToken,
       participantName,
+      participantToken,
     };
     const headers = new Headers({
       'Cache-Control': 'no-store',
@@ -72,7 +81,7 @@ export async function POST(req: Request) {
 function createParticipantToken(
   userInfo: AccessTokenOptions,
   roomName: string,
-  agentName?: string
+  roomConfig: RoomConfiguration
 ): Promise<string> {
   const at = new AccessToken(API_KEY, API_SECRET, {
     ...userInfo,
@@ -87,10 +96,8 @@ function createParticipantToken(
   };
   at.addGrant(grant);
 
-  if (agentName) {
-    at.roomConfig = new RoomConfiguration({
-      agents: [{ agentName }],
-    });
+  if (roomConfig) {
+    at.roomConfig = roomConfig;
   }
 
   return at.toJwt();
