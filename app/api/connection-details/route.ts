@@ -17,6 +17,7 @@ const LIVEKIT_URL = process.env.LIVEKIT_URL;
 // don't cache the results
 export const revalidate = 0;
 
+
 export async function POST(req: Request) {
   try {
     if (LIVEKIT_URL === undefined) {
