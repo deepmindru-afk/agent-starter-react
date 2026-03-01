@@ -17,12 +17,12 @@ export interface AppConfig {
   audioVisualizerType?: 'bar' | 'wave' | 'grid' | 'radial' | 'aura';
   audioVisualizerColor?: `#${string}`;
   audioVisualizerColorDark?: `#${string}`;
+  audioVisualizerColorShift?: number;
   audioVisualizerBarCount?: number;
   audioVisualizerGridRowCount?: number;
   audioVisualizerGridColumnCount?: number;
   audioVisualizerRadialBarCount?: number;
   audioVisualizerRadialRadius?: number;
-  audioVisualizerAuraColorShift?: number;
   audioVisualizerWaveLineWidth?: number;
 
   // agent dispatch configuration
