@@ -37,13 +37,10 @@ export async function POST(req: Request) {
 
     // Parse room config from request body.
     const body = await req.json();
-    //const agentName: string = body?.room_config?.agents?.[0]?.agent_name;
-    
-    //const participantCurr=`portal_${Math.floor(Math.random() * 10_000)}`
-    
-    // Recreate the RoomConfiguration object from JSON object.
     const roomConfig = RoomConfiguration.fromJson(body?.room_config, { ignoreUnknownFields: true });
-
+    //const agentName: string = body?.room_config?.agents?.[0]?.agent_name;
+    //const participantCurr=`portal_${Math.floor(Math.random() * 10_000)}`
+    // Recreate the RoomConfiguration object from JSON object.
     // Generate participant token
     //const participantName = `va_user_${Math.floor(Math.random() * 10_000)}`;
     //const participantIdentity = `va_user_${Math.floor(Math.random() * 10_000)}`;
