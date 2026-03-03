@@ -14,6 +14,9 @@ const nextConfig = {
   images: {
     formats: ['image/webp'],
   },
+  experimental: {
+    allowDevelopmentBuild: true,
+  },
   headers: async () => {
     return [
       {
