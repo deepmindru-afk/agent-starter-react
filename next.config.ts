@@ -1,7 +1,6 @@
 import type { NextConfig } from 'next';
 
-const nextConfig: NextConfig = {
-  /* config options here */
+const nextConfig = {
   reactStrictMode: false,
   productionBrowserSourceMaps: true,
   eslint: {
@@ -12,6 +11,12 @@ const nextConfig: NextConfig = {
     // Dangerously allow production builds to successfully complete even if your project has type errors
     ignoreBuildErrors: true,
   },
+  images: {
+    formats: ['image/webp'],
+  },
+  //experimental: {
+  //  allowDevelopmentBuild: true,
+  //},
   headers: async () => {
     return [
       {
@@ -31,4 +36,5 @@ const nextConfig: NextConfig = {
   },
 };
 
+//module.exports = nextConfig;
 export default nextConfig;
