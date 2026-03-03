@@ -2,14 +2,6 @@
   "name": "agent-starter-react",
   "version": "0.1.0",
   "private": true,
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-  "proxy": "http://localhost:3000",
->>>>>>> parent of 2ab248b (cmt)
-=======
-  "proxy": "http://localhost:3000",
->>>>>>> parent of 2ab248b (cmt)
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
