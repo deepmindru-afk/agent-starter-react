@@ -12,7 +12,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    formats: ['image/webp', 'image/jpeg'],
+    formats: ['image/webp'],
   },
   headers: async () => {
     return [
