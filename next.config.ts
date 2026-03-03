@@ -14,9 +14,9 @@ const nextConfig = {
   images: {
     formats: ['image/webp'],
   },
-  experimental: {
-    allowDevelopmentBuild: true,
-  },
+  //experimental: {
+  //  allowDevelopmentBuild: true,
+  //},
   headers: async () => {
     return [
       {
@@ -36,5 +36,5 @@ const nextConfig = {
   },
 };
 
-//module.exports = nextConfig;
-export default nextConfig;
+module.exports = nextConfig;
+//export default nextConfig;
