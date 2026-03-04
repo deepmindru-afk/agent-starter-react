@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { type LocalAudioTrack, type RemoteAudioTrack } from 'livekit-client';
 import {
   type AnimationPlaybackControlsWithThen,
@@ -14,12 +14,12 @@ import {
   useTrackVolume,
 } from '@livekit/components-react';
 
-const DEFAULT_SPEED = 11;
+const DEFAULT_SPEED = 10;
 const DEFAULT_AMPLITUDE = 2;
-const DEFAULT_FREQUENCY = 0.7;
-const DEFAULT_SCALE = 0.3;
-const DEFAULT_BRIGHTNESS = 1.7;
-const DEFAULT_TRANSITION: ValueAnimationTransition = { duration: 0.7, ease: 'easeOut' };
+const DEFAULT_FREQUENCY = 0.5;
+const DEFAULT_SCALE = 0.2;
+const DEFAULT_BRIGHTNESS = 1.5;
+const DEFAULT_TRANSITION: ValueAnimationTransition = { duration: 0.5, ease: 'easeOut' };
 const DEFAULT_PULSE_TRANSITION: ValueAnimationTransition = {
   duration: 0.35,
   ease: 'easeOut',
@@ -37,7 +37,7 @@ function useAnimatedValue<T>(initialValue: T) {
     (targetValue: T | T[], transition: ValueAnimationTransition) => {
       controlsRef.current = animate(motionValue, targetValue, transition);
     },
-    [motionValue]
+    [motionValue],
   );
 
   return { value, motionValue, controls: controlsRef, animate: animateFn };
@@ -45,7 +45,7 @@ function useAnimatedValue<T>(initialValue: T) {
 
 export function useAgentAudioVisualizerAura(
   state: AgentState | undefined,
-  audioTrack?: LocalAudioTrack | RemoteAudioTrack | TrackReferenceOrPlaceholder
+  audioTrack?: LocalAudioTrack | RemoteAudioTrack | TrackReferenceOrPlaceholder,
 ) {
   const [speed, setSpeed] = useState(DEFAULT_SPEED);
   const {

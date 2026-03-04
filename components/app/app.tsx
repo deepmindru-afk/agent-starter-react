@@ -30,7 +30,7 @@ export function App({ appConfig }: AppProps) {
   const tokenSource = useMemo(() => {
     return typeof process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT === 'string'
       ? getSandboxTokenSource(appConfig)
-      : TokenSource.endpoint('/api/connection-details');
+      : TokenSource.endpoint('/api/token');
   }, [appConfig]);
 
 
@@ -46,7 +46,7 @@ export function App({ appConfig }: AppProps) {
   const getParticipantIdentity = () => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
-      const participantIdentity = searchParams.get('username') || `va_user_${Math.floor(Math.random() * 10_000)}`;
+      const participantIdentity = searchParams.get('user') || `va_user_${Math.floor(Math.random() * 10_000)}`;
       return participantIdentity;
     }
     return `va_user_${Math.floor(Math.random() * 10_000)}`; // Заглушка для сервера
@@ -55,7 +55,7 @@ export function App({ appConfig }: AppProps) {
   const getParticipantName = () => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
-      const participantName = searchParams.get('user') || `va_user_${Math.floor(Math.random() * 10_000)}`;
+      const participantName = searchParams.get('username') || `va_user_${Math.floor(Math.random() * 10_000)}`;
       return participantName;
     }
     return `va_user_${Math.floor(Math.random() * 10_000)}`; // Заглушка для сервера
