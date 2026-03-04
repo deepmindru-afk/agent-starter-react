@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   experimental: {
     allowDevelopmentBuild: true,
     serverActions: {
-      allowedOrigins: ["localhost:3000", "portalos.ru", "*.portalos.ru"]
+      allowedOrigins: ["*"]
     }
   },
   productionBrowserSourceMaps: false,
