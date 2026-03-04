@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: false,
   experimental: {
+    allowDevelopmentBuild: true,
     serverActions: {
       allowedOrigins: ["localhost:3000", "portalos.ru"]
     }
