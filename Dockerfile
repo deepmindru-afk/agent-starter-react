@@ -12,15 +12,15 @@ RUN npm install -g npm next corepack pnpm
 RUN corepack enable
 #RUN corepack install npm
 # Устанавливаем зависимости
-#RUN npm install -f
-RUN pnpm i -f
+RUN npm install -f
+#RUN pnpm i -f
 
 # Копируем все файлы приложения в контейнер
 COPY . .
 
 # Собираем приложение
-#RUN npm run build
-RUN pnpm build
+RUN npm run build
+#RUN pnpm build
 
 # Используем более легкий образ для запуска приложения
 FROM node:latest AS runner
