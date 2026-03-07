@@ -1,12 +1,13 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
   reactStrictMode: false,
+  crossOrigin: 'anonymous',
+  allowedDevOrigins: ['*'],
   experimental: {
-    allowDevelopmentBuild: true,
+    //allowDevelopmentBuild: true,
     serverActions: {
-      allowedOrigins: ["*"]
+      allowedOrigins: ["*.*","*"]
     }
   },
   productionBrowserSourceMaps: false,
