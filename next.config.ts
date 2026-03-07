@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   experimental: {
     //allowDevelopmentBuild: true,
     serverActions: {
-      allowedOrigins: ["*/*"]
+      allowedOrigins: ["*.*","*"]
     }
   },
   productionBrowserSourceMaps: false,
