@@ -1,13 +1,14 @@
 'use client';
 
+import { useTheme } from 'next-themes';
 import { AnimatePresence, motion } from 'motion/react';
 import { useSessionContext } from '@livekit/components-react';
 import type { AppConfig } from '@/app-config';
-import { SessionView } from '@/components/app/session-view';
+import { AgentSessionView_01 } from '@/components/agents-ui/blocks/agent-session-view-01';
 import { WelcomeView } from '@/components/app/welcome-view';
 
 const MotionWelcomeView = motion.create(WelcomeView);
-const MotionSessionView = motion.create(SessionView);
+const MotionSessionView = motion.create(AgentSessionView_01);
 
 const VIEW_MOTION_PROPS = {
   variants: {
@@ -33,6 +34,7 @@ interface ViewControllerProps {
 
 export function ViewController({ appConfig }: ViewControllerProps) {
   const { isConnected, start } = useSessionContext();
+  const { resolvedTheme } = useTheme();
 
   return (
     <AnimatePresence mode="wait">
@@ -47,7 +49,28 @@ export function ViewController({ appConfig }: ViewControllerProps) {
       )}
       {/* Session view */}
       {isConnected && (
-        <MotionSessionView key="session-view" {...VIEW_MOTION_PROPS} appConfig={appConfig} />
+        <MotionSessionView
+          key="session-view"
+          {...VIEW_MOTION_PROPS}
+          supportsChatInput={appConfig.supportsChatInput}
+          supportsVideoInput={appConfig.supportsVideoInput}
+          supportsScreenShare={appConfig.supportsScreenShare}
+          isPreConnectBufferEnabled={appConfig.isPreConnectBufferEnabled}
+          audioVisualizerType={appConfig.audioVisualizerType}
+          audioVisualizerColor={
+            resolvedTheme === 'dark'
+              ? appConfig.audioVisualizerColorDark
+              : appConfig.audioVisualizerColor
+          }
+          audioVisualizerColorShift={appConfig.audioVisualizerColorShift}
+          audioVisualizerBarCount={appConfig.audioVisualizerBarCount}
+          audioVisualizerGridRowCount={appConfig.audioVisualizerGridRowCount}
+          audioVisualizerGridColumnCount={appConfig.audioVisualizerGridColumnCount}
+          audioVisualizerRadialBarCount={appConfig.audioVisualizerRadialBarCount}
+          audioVisualizerRadialRadius={appConfig.audioVisualizerRadialRadius}
+          audioVisualizerWaveLineWidth={appConfig.audioVisualizerWaveLineWidth}
+          className="fixed inset-0"
+        />
       )}
     </AnimatePresence>
   );
