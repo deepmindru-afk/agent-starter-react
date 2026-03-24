@@ -373,13 +373,8 @@ export interface AgentAudioVisualizerAuraProps {
    */
   state?: AgentState;
   /**
-<<<<<<< HEAD
    * The color of the aura in hex format.
    * @defaultValue '#a60da1'
-=======
-   * The color of the aura in hexidecimal format.
-   * @defaultValue '#1FD5F9'
->>>>>>> upstream/main
    */
   color?: `#${string}`;
   /**
@@ -444,15 +439,12 @@ export function AgentAudioVisualizerAura({
       amplitude={amplitude}
       frequency={frequency}
       brightness={brightness}
-<<<<<<< HEAD
-      className={cn(
-        AgentAudioVisualizerAuraVariants({ size }),
-        'overflow-hidden rounded-full',
-        className,
-      )}
-=======
+      //className={cn(
+      //  AgentAudioVisualizerAuraVariants({ size }),
+      //  'overflow-hidden rounded-full',
+      //  className,
+      //)}
       className={cn(AgentAudioVisualizerAuraVariants({ size }), className)}
->>>>>>> upstream/main
       {...props}
     />
   );
