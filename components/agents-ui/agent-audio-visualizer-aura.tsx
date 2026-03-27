@@ -439,12 +439,12 @@ export function AgentAudioVisualizerAura({
       amplitude={amplitude}
       frequency={frequency}
       brightness={brightness}
-      //className={cn(
-      //  AgentAudioVisualizerAuraVariants({ size }),
-      //  'overflow-hidden rounded-full',
-      //  className,
-      //)}
-      className={cn(AgentAudioVisualizerAuraVariants({ size }), className)}
+      className={cn(
+        AgentAudioVisualizerAuraVariants({ size }),
+        'overflow-hidden rounded-full',
+        className,
+      )}
+      //className={cn(AgentAudioVisualizerAuraVariants({ size }), className)}
       {...props}
     />
   );
