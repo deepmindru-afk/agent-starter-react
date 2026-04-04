@@ -46,7 +46,7 @@ function cloneSingleChild(
 export const AgentAudioVisualizerBarElementVariants = cva(
   [
     'rounded-full transition-colors duration-250 ease-linear',
-    'bg-current/10 data-[lk-highlighted=true]:bg-current',
+    'bg-transparent data-[lk-highlighted=true]:bg-current',
   ],
   {
     variants: {
@@ -198,7 +198,7 @@ export function AgentAudioVisualizerBar({
   return (
     <div
       data-lk-state={state}
-      style={{ ...style, color } as CSSProperties}
+      //style={{ ...style, color } as CSSProperties}
       className={cn(AgentAudioVisualizerBarVariants({ size }), className)}
       {...props}
     >

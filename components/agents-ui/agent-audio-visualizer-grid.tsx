@@ -271,9 +271,7 @@ export function AgentAudioVisualizerGrid({
     <div
       data-lk-state={state}
       className={cn(AgentAudioVisualizerGridVariants({ size }), className)}
-      style={
-        { ...style, gridTemplateColumns: `repeat(${columnCount}, 1fr)`, color } as CSSProperties
-      }
+      style={{ ...style, gridTemplateColumns: `repeat(${columnCount}, 1fr)` }}
       {...props}
     >
       {items.map((idx) => (

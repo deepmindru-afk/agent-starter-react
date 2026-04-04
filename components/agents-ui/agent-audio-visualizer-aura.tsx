@@ -445,7 +445,7 @@ export function AgentAudioVisualizerAura({
         className,
       )}
       //className={cn(AgentAudioVisualizerAuraVariants({ size }), className)}
-      {...props}
+      //{...props}
     />
   );
 }
