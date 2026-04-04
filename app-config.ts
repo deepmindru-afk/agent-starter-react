@@ -49,8 +49,8 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   startButtonText: process.env.BUTTON ?? 'Открыть Портал',
 
   // optional: audio visualization configuration
-  audioVisualizerColor: '#9f0658',
-  audioVisualizerColorDark: '#f91fdf',
+  audioVisualizerColor: '#c4118e',
+  audioVisualizerColorDark: '#d816c2',
   audioVisualizerType: 'bar',
   audioVisualizerBarCount: 5,
   audioVisualizerType: 'radial',
