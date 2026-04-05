@@ -3,7 +3,7 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   reactStrictMode: false,
   crossOrigin: 'anonymous',
-  allowedDevOrigins: ['*'],
+  allowedDevOrigins: ["*.*","*"],
   experimental: {
     //allowDevelopmentBuild: true,
     serverActions: {
