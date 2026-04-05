@@ -48,9 +48,9 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   accentDark: 'rgb(154, 6, 183)',
   startButtonText: process.env.BUTTON ?? 'Открыть Портал',
 
-  
+
   // optional: audio visualization configuration
-  audioVisualizerColor: '#9f0658',
+  audioVisualizerColor: '#9f0676',
   audioVisualizerColorDark: '#f91fdf',
   //audioVisualizerType: 'bar',
   //audioVisualizerBarCount: 5,
@@ -63,7 +63,7 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   //audioVisualizerType: 'wave',
   //audioVisualizerWaveLineWidth: 3,
   audioVisualizerType: 'aura',
-  audioVisualizerAuraColorShift: 0.3,
+  audioVisualizerColorShift: 0.3,
 
   // agent dispatch configuration
   agentName: process.env.AGENT_NAME ?? undefined,

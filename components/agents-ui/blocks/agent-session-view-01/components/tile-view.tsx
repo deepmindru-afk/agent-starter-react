@@ -107,7 +107,7 @@ export function TileLayout({
 
   return (
     //<div className="absolute inset-x-0 top-8 bottom-32 z-50 md:top-12 md:bottom-40">
-    <div className="absolute inset-x-0 top-8 bottom-32 z-50 md:top-12 md:bottom-40">
+    <div className="">
       <div className="relative mx-auto h-full max-w-5xl px-4 md:px-0">
         <div className={cn(tileViewClassNames.grid)}>
           {/* Agent */}
