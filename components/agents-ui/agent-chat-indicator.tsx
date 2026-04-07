@@ -15,7 +15,7 @@ const motionAnimationProps = {
     },
     visible: {
       opacity: [0.5, 1],
-      scale: [1, 1.2],
+      scale: [1, 1.4],
       transition: {
         type: 'spring' as const,
         bounce: 0,
