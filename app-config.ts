@@ -33,9 +33,9 @@ export interface AppConfig {
 }
 
 export const APP_CONFIG_DEFAULTS: AppConfig = {
-  companyName: 'LiveKit',
-  pageTitle: 'LiveKit Voice Agent',
-  pageDescription: 'A voice agent built with LiveKit',
+  companyName: process.env.COMPANY ?? 'Портал',
+  pageTitle: process.env.TITLE ?? 'Портал Агенты',
+  pageDescription: process.env.DESCRIPTION ?? 'Портал ИИ-агенты',
 
   supportsChatInput: true,
   supportsVideoInput: true,
@@ -43,29 +43,31 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   isPreConnectBufferEnabled: true,
 
   logo: '/lk-logo.svg',
-  accent: '#002cf2',
+  accent: '#b10ed6ff',
   logoDark: '/lk-logo-dark.svg',
-  accentDark: '#1fd5f9',
-  startButtonText: 'Start call',
+  accentDark: 'rgb(154, 6, 183)',
+  startButtonText: process.env.BUTTON ?? 'Открыть Портал',
+
 
   // optional: audio visualization configuration
-  // audioVisualizerType: 'bar',
-  // audioVisualizerColor: '#002cf2',
-  // audioVisualizerColorDark: '#1fd5f9',
-  // audioVisualizerColorShift: 0.3,
-  // audioVisualizerBarCount: 5,
-  // audioVisualizerType: 'radial',
-  // audioVisualizerRadialBarCount: 24,
-  // audioVisualizerRadialRadius: 100,
-  // audioVisualizerType: 'grid',
-  // audioVisualizerGridRowCount: 25,
-  // audioVisualizerGridColumnCount: 25,
-  // audioVisualizerType: 'wave',
-  // audioVisualizerWaveLineWidth: 3,
-  // audioVisualizerType: 'aura',
+  audioVisualizerColor: '#9f0676',
+  audioVisualizerColorDark: '#f91fdf',
+  //audioVisualizerType: 'bar',
+  //audioVisualizerBarCount: 5,
+  //audioVisualizerType: 'radial',
+  //audioVisualizerRadialBarCount: 24,
+  //audioVisualizerRadialRadius: 100,
+  //audioVisualizerType: 'grid',
+  //audioVisualizerGridRowCount: 25,
+  //audioVisualizerGridColumnCount: 25,
+  //audioVisualizerType: 'wave',
+  //audioVisualizerWaveLineWidth: 3,
+  audioVisualizerType: 'aura',
+  audioVisualizerColorShift: 0.3,
 
   // agent dispatch configuration
   agentName: process.env.AGENT_NAME ?? undefined,
+  //agentName: 'portal', agentName: undefined,
 
   // LiveKit Cloud Sandbox configuration
   sandboxId: undefined,
