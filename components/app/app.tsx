@@ -39,6 +39,12 @@ export function App({ appConfig, roomName }: AppProps) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ room_name: roomName }),
         });
+        if (!res.ok) {
+          const body = await res.text();
+          throw new Error(
+            `Token request failed (${res.status}): ${body || res.statusText}`
+          );
+        }
         return res.json();
       });
     }

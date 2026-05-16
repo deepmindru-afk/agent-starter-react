@@ -18,13 +18,13 @@ const LIVEKIT_URL = process.env.LIVEKIT_URL;
 export const revalidate = 0;
 
 export async function POST(req: Request) {
-  if (process.env.NODE_ENV !== 'development') {
-    throw new Error(
-      'THIS API ROUTE IS INSECURE. DO NOT USE THIS ROUTE IN PRODUCTION WITHOUT AN AUTHENTICATION LAYER.'
-    );
-  }
-
   try {
+    if (process.env.NODE_ENV !== 'development') {
+      console.warn(
+        'THIS API ROUTE IS INSECURE. DO NOT USE THIS ROUTE IN PRODUCTION WITHOUT AN AUTHENTICATION LAYER.'
+      );
+    }
+
     if (LIVEKIT_URL === undefined) {
       throw new Error('LIVEKIT_URL is not defined');
     }
@@ -35,13 +35,11 @@ export async function POST(req: Request) {
       throw new Error('LIVEKIT_API_SECRET is not defined');
     }
 
-    // Parse room config from request body.
     const body = await req.json();
     const roomConfig = body?.room_config
       ? RoomConfiguration.fromJson(body.room_config, { ignoreUnknownFields: true })
       : new RoomConfiguration();
 
-    // Generate participant token
     const participantName = 'user';
     const participantIdentity = `voice_assistant_user_${Math.floor(Math.random() * 10_000)}`;
     const roomName = body?.room_name ?? `voice_assistant_room_${Math.floor(Math.random() * 10_000)}`;
@@ -52,7 +50,6 @@ export async function POST(req: Request) {
       roomConfig
     );
 
-    // Return connection details
     const data: ConnectionDetails = {
       serverUrl: LIVEKIT_URL,
       roomName,
@@ -64,10 +61,10 @@ export async function POST(req: Request) {
     });
     return NextResponse.json(data, { headers });
   } catch (error) {
-    if (error instanceof Error) {
-      console.error(error);
-      return new NextResponse(error.message, { status: 500 });
-    }
+    const message =
+      error instanceof Error ? error.message : 'An unexpected error occurred';
+    console.error('POST /api/token failed:', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
