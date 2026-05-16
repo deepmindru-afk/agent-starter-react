@@ -24,14 +24,26 @@ function AppSetup() {
 
 interface AppProps {
   appConfig: AppConfig;
+  roomName?: string;
 }
 
-export function App({ appConfig }: AppProps) {
+export function App({ appConfig, roomName }: AppProps) {
   const tokenSource = useMemo(() => {
-    return typeof process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT === 'string'
-      ? getSandboxTokenSource(appConfig)
-      : TokenSource.endpoint('/api/token');
-  }, [appConfig]);
+    if (typeof process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT === 'string') {
+      return getSandboxTokenSource(appConfig);
+    }
+    if (roomName) {
+      return TokenSource.custom(async () => {
+        const res = await fetch('/api/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ room_name: roomName }),
+        });
+        return res.json();
+      });
+    }
+    return TokenSource.endpoint('/api/token');
+  }, [appConfig, roomName]);
 
   const session = useSession(
     tokenSource,
