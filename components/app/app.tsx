@@ -24,36 +24,51 @@ function AppSetup() {
 
 interface AppProps {
   appConfig: AppConfig;
-  roomName?: string;
 }
 
-export function App({ appConfig, roomName }: AppProps) {
+export function App({ appConfig }: AppProps) {
   const tokenSource = useMemo(() => {
-    if (typeof process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT === 'string') {
-      return getSandboxTokenSource(appConfig);
+    return typeof process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT === 'string'
+      ? getSandboxTokenSource(appConfig)
+      : TokenSource.endpoint('/api/token');
+  }, [appConfig]);
+
+  const getRoomName = () => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      return searchParams.get('room') || `va_room_${Math.floor(Math.random() * 10_000)}`;
     }
-    if (roomName) {
-      return TokenSource.custom(async () => {
-        const res = await fetch('/api/token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ room_name: roomName }),
-        });
-        if (!res.ok) {
-          const body = await res.text();
-          throw new Error(
-            `Token request failed (${res.status}): ${body || res.statusText}`
-          );
-        }
-        return res.json();
-      });
+    return `va_room_${Math.floor(Math.random() * 10_000)}`;
+  };
+
+  const getParticipantIdentity = () => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      return searchParams.get('user') || `va_user_${Math.floor(Math.random() * 10_000)}`;
     }
-    return TokenSource.endpoint('/api/token');
-  }, [appConfig, roomName]);
+    return `va_user_${Math.floor(Math.random() * 10_000)}`;
+  };
+
+  const getParticipantName = () => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      return searchParams.get('username') || `va_user_${Math.floor(Math.random() * 10_000)}`;
+    }
+    return `va_user_${Math.floor(Math.random() * 10_000)}`;
+  };
+
+  const roomName = getRoomName();
+  const participantIdentity = getParticipantIdentity();
+  const participantName = getParticipantName();
 
   const session = useSession(
     tokenSource,
-    appConfig.agentName ? { agentName: appConfig.agentName } : undefined
+    appConfig.agentName ? {
+      agentName: appConfig.agentName,
+      roomName: roomName,
+      participantName: participantName,
+      participantIdentity: participantIdentity,
+    } : undefined,
   );
 
   return (

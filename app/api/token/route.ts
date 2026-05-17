@@ -36,13 +36,11 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const roomConfig = body?.room_config
-      ? RoomConfiguration.fromJson(body.room_config, { ignoreUnknownFields: true })
-      : new RoomConfiguration();
+    const roomConfig = RoomConfiguration.fromJson(body?.room_config, { ignoreUnknownFields: true });
 
-    const participantName = 'user';
-    const participantIdentity = `voice_assistant_user_${Math.floor(Math.random() * 10_000)}`;
-    const roomName = body?.room_name ?? `voice_assistant_room_${Math.floor(Math.random() * 10_000)}`;
+    const roomName: string = body?.room_name;
+    const participantIdentity: string = body?.participant_identity;
+    const participantName: string = body?.participant_name;
 
     const participantToken = await createParticipantToken(
       { identity: participantIdentity, name: participantName },
@@ -71,7 +69,7 @@ export async function POST(req: Request) {
 function createParticipantToken(
   userInfo: AccessTokenOptions,
   roomName: string,
-  roomConfig: RoomConfiguration | undefined
+  roomConfig: RoomConfiguration
 ): Promise<string> {
   const at = new AccessToken(API_KEY, API_SECRET, {
     ...userInfo,
