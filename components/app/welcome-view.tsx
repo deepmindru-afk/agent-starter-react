@@ -21,11 +21,15 @@ function WelcomeImage() {
 interface WelcomeViewProps {
   startButtonText: string;
   onStartCall: () => void;
+  username?: string;
+  onUsernameChange?: (name: string) => void;
 }
 
 export const WelcomeView = ({
   startButtonText,
   onStartCall,
+  username = '',
+  onUsernameChange,
   ref,
 }: React.ComponentProps<'div'> & WelcomeViewProps) => {
   return (
@@ -37,10 +41,18 @@ export const WelcomeView = ({
           Говорите с Вашим агентом голосом, в чате, показывайте изображения с камеры
         </p>
 
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => onUsernameChange?.(e.target.value)}
+          placeholder="Ваше имя (необязательно)"
+          className="mt-6 w-64 rounded-full border px-4 py-2 text-sm text-center placeholder:text-muted-foreground bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+
         <Button
           size="lg"
           onClick={onStartCall}
-          className="mt-6 w-64 rounded-full font-mono text-xs font-bold tracking-wider uppercase"
+          className="mt-3 w-64 rounded-full font-mono text-xs font-bold tracking-wider uppercase"
         >
           {startButtonText}
         </Button>

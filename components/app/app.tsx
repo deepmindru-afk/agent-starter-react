@@ -30,6 +30,12 @@ interface AppProps {
 
 export function App({ appConfig }: AppProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [username, setUsername] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return new URLSearchParams(window.location.search).get('username') || '';
+    }
+    return '';
+  });
 
   const tokenSource = useMemo(() => {
     return typeof process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT === 'string'
@@ -53,17 +59,9 @@ export function App({ appConfig }: AppProps) {
     return `va_user_${Math.floor(Math.random() * 10_000)}`;
   };
 
-  const getParticipantName = () => {
-    if (typeof window !== 'undefined') {
-      const searchParams = new URLSearchParams(window.location.search);
-      return searchParams.get('username') || `va_user_${Math.floor(Math.random() * 10_000)}`;
-    }
-    return `va_user_${Math.floor(Math.random() * 10_000)}`;
-  };
-
   const roomName = getRoomName();
   const participantIdentity = getParticipantIdentity();
-  const participantName = getParticipantName();
+  const participantName = username || `va_user_${Math.floor(Math.random() * 10_000)}`;
 
   const session = useSession(
     tokenSource,
@@ -79,7 +77,11 @@ export function App({ appConfig }: AppProps) {
     <AgentSessionProvider session={session}>
       <AppSetup />
       <main className="grid h-svh grid-cols-1 place-content-center">
-        <ViewController appConfig={appConfig} />
+        <ViewController
+          appConfig={appConfig}
+          username={username}
+          onUsernameChange={setUsername}
+        />
       </main>
       <StartAudioButton label="Start Audio" />
 
