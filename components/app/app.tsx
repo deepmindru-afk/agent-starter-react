@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Menu } from 'lucide-react';
 import { TokenSource } from 'livekit-client';
 import { useSession } from '@livekit/components-react';
 import { WarningIcon } from '@phosphor-icons/react/dist/ssr';
@@ -9,6 +8,7 @@ import type { AppConfig } from '@/app-config';
 import { AgentSessionProvider } from '@/components/agents-ui/agent-session-provider';
 import { StartAudioButton } from '@/components/agents-ui/start-audio-button';
 import { Sidebar } from '@/components/app/sidebar';
+import { TopBar } from '@/components/app/top-bar';
 import { ViewController } from '@/components/app/view-controller';
 import { Toaster } from '@/components/ui/sonner';
 import { useAgentErrors } from '@/hooks/useAgentErrors';
@@ -83,13 +83,7 @@ export function App({ appConfig }: AppProps) {
       </main>
       <StartAudioButton label="Start Audio" />
 
-      <button
-        onClick={() => setSidebarOpen(true)}
-        className="fixed top-3 left-3 z-30 rounded-md p-2 transition-colors hover:bg-accent md:top-6 md:left-6"
-        aria-label="Open chat history"
-      >
-        <Menu className="size-5" />
-      </button>
+      <TopBar onSidebarOpen={() => setSidebarOpen(true)} />
 
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
