@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Clock, MessageSquareTextIcon, XIcon } from 'lucide-react';
+import { useAgent, useRoomContext } from '@livekit/components-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { cn } from '@/lib/shadcn/utils';
 
@@ -18,28 +19,41 @@ interface SidebarProps {
 }
 
 export function Sidebar({ open, onClose }: SidebarProps) {
+  const room = useRoomContext();
+  const { agent } = useAgent();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (!open) return;
+  const load = useCallback(async () => {
+    const participant = room?.localParticipant;
+    const agentIdentity = agent?.identity;
+    if (!participant || !agentIdentity) {
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setSessions([]);
 
-    const endpoint =
-      process.env.NEXT_PUBLIC_SESSIONS_ENDPOINT ?? '/api/sessions';
+    try {
+      const response = await participant.performRpc({
+        destinationIdentity: agentIdentity,
+        method: 'get_sessions',
+        payload: JSON.stringify({ limit: 20 }),
+        responseTimeout: 10000,
+      });
+      const data = JSON.parse(response);
+      setSessions(data.sessions ?? []);
+    } catch {
+      // RPC unavailable — keep empty
+    } finally {
+      setLoading(false);
+    }
+  }, [room, agent]);
 
-    fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ limit: 20 }),
-    })
-      .then((res) => res.json())
-      .then((data) => setSessions(data.sessions ?? []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [open]);
+  useEffect(() => {
+    if (open) load();
+  }, [open, load]);
 
   return (
     <AnimatePresence>
