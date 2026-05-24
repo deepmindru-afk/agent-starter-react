@@ -27,7 +27,10 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     setLoading(true);
     setSessions([]);
 
-    fetch('/api/sessions', {
+    const endpoint =
+      process.env.NEXT_PUBLIC_SESSIONS_ENDPOINT ?? '/api/sessions';
+
+    fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ limit: 20 }),
