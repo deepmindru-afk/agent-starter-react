@@ -13,7 +13,6 @@ import { ViewController } from '@/components/app/view-controller';
 import { Toaster } from '@/components/ui/sonner';
 import { useAgentErrors } from '@/hooks/useAgentErrors';
 import { useDebugMode } from '@/hooks/useDebug';
-import { getSandboxTokenSource } from '@/lib/utils';
 
 const IN_DEVELOPMENT = process.env.NODE_ENV !== 'production';
 
@@ -43,12 +42,6 @@ export function App({ appConfig }: AppProps) {
     return '';
   });
 
-  const tokenSource = useMemo(() => {
-    return typeof process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT === 'string'
-      ? getSandboxTokenSource(appConfig)
-      : TokenSource.endpoint('/api/token');
-  }, [appConfig]);
-
   const fallbackUser = typeof window !== 'undefined'
     ? new URLSearchParams(window.location.search).get('user') ?? `va_user_${Math.floor(Math.random() * 10_000)}`
     : `va_user_${Math.floor(Math.random() * 10_000)}`;
@@ -57,15 +50,35 @@ export function App({ appConfig }: AppProps) {
   const participantName = username || fallbackUser;
   const finalRoomName = roomName || `va_room_${Math.floor(Math.random() * 10_000)}`;
 
-  const session = useSession(
-    tokenSource,
-    {
-      agentName: appConfig.agentName,
-      roomName: finalRoomName,
-      participantName: participantName,
-      participantIdentity: participantIdentity,
-    },
-  );
+  const tokenSource = useMemo(() => {
+    const sandboxEndpoint = process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT;
+    const url = sandboxEndpoint ?? '/api/token';
+    const sandboxId = appConfig.sandboxId;
+    const roomConfig = appConfig.agentName
+      ? { agents: [{ agent_name: appConfig.agentName }] }
+      : undefined;
+
+    return TokenSource.custom(async () => {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (sandboxEndpoint && sandboxId) {
+        headers['X-Sandbox-Id'] = sandboxId;
+      }
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          room_name: finalRoomName,
+          participant_identity: participantIdentity,
+          participant_name: participantName,
+          room_config: roomConfig,
+        }),
+      });
+      return await res.json();
+    });
+  }, [appConfig, finalRoomName, participantIdentity, participantName]);
+
+  const session = useSession(tokenSource);
 
   return (
     <AgentSessionProvider session={session}>
