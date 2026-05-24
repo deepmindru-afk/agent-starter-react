@@ -49,7 +49,7 @@ export function TopBar({ onSidebarOpen }: TopBarProps) {
 
       {models.length > 0 && (
         <Select value={selectedModel} onValueChange={setSelectedModel}>
-          <SelectTrigger className="w-40 md:w-48">
+          <SelectTrigger className="w-40 text-base md:w-48">
             <SelectValue placeholder="Select model" />
           </SelectTrigger>
           <SelectContent>
