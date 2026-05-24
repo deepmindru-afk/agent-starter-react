@@ -49,16 +49,12 @@ export function App({ appConfig }: AppProps) {
       : TokenSource.endpoint('/api/token');
   }, [appConfig]);
 
-  const getParticipantIdentity = () => {
-    if (typeof window !== 'undefined') {
-      const searchParams = new URLSearchParams(window.location.search);
-      return searchParams.get('user') || `va_user_${Math.floor(Math.random() * 10_000)}`;
-    }
-    return `va_user_${Math.floor(Math.random() * 10_000)}`;
-  };
+  const fallbackUser = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('user') ?? `va_user_${Math.floor(Math.random() * 10_000)}`
+    : `va_user_${Math.floor(Math.random() * 10_000)}`;
 
-  const participantIdentity = getParticipantIdentity();
-  const participantName = username || `va_user_${Math.floor(Math.random() * 10_000)}`;
+  const participantIdentity = username || fallbackUser;
+  const participantName = username || fallbackUser;
   const finalRoomName = roomName || `va_room_${Math.floor(Math.random() * 10_000)}`;
 
   const session = useSession(
