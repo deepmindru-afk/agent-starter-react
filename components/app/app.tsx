@@ -1,12 +1,14 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { Menu } from 'lucide-react';
 import { TokenSource } from 'livekit-client';
 import { useSession } from '@livekit/components-react';
 import { WarningIcon } from '@phosphor-icons/react/dist/ssr';
 import type { AppConfig } from '@/app-config';
 import { AgentSessionProvider } from '@/components/agents-ui/agent-session-provider';
 import { StartAudioButton } from '@/components/agents-ui/start-audio-button';
+import { Sidebar } from '@/components/app/sidebar';
 import { ViewController } from '@/components/app/view-controller';
 import { Toaster } from '@/components/ui/sonner';
 import { useAgentErrors } from '@/hooks/useAgentErrors';
@@ -27,6 +29,8 @@ interface AppProps {
 }
 
 export function App({ appConfig }: AppProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const tokenSource = useMemo(() => {
     return typeof process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT === 'string'
       ? getSandboxTokenSource(appConfig)
@@ -78,6 +82,17 @@ export function App({ appConfig }: AppProps) {
         <ViewController appConfig={appConfig} />
       </main>
       <StartAudioButton label="Start Audio" />
+
+      <button
+        onClick={() => setSidebarOpen(true)}
+        className="fixed top-3 left-3 z-30 rounded-md p-2 transition-colors hover:bg-accent md:top-6 md:left-6"
+        aria-label="Open chat history"
+      >
+        <Menu className="size-5" />
+      </button>
+
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
       <Toaster
         icons={{
           warning: <WarningIcon weight="bold" />,
