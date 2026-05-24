@@ -59,12 +59,12 @@ export function App({ appConfig }: AppProps) {
 
   const session = useSession(
     tokenSource,
-    appConfig.agentName ? {
+    {
       agentName: appConfig.agentName,
       roomName: finalRoomName,
       participantName: participantName,
       participantIdentity: participantIdentity,
-    } : undefined,
+    },
   );
 
   return (
