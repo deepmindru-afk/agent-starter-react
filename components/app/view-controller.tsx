@@ -32,9 +32,11 @@ interface ViewControllerProps {
   appConfig: AppConfig;
   username?: string;
   onUsernameChange?: (name: string) => void;
+  roomName?: string;
+  onRoomNameChange?: (name: string) => void;
 }
 
-export function ViewController({ appConfig, username, onUsernameChange }: ViewControllerProps) {
+export function ViewController({ appConfig, username, onUsernameChange, roomName, onRoomNameChange }: ViewControllerProps) {
   const { isConnected, start } = useSessionContext();
   const { resolvedTheme } = useTheme();
 
@@ -49,6 +51,8 @@ export function ViewController({ appConfig, username, onUsernameChange }: ViewCo
           onStartCall={start}
           username={username}
           onUsernameChange={onUsernameChange}
+          roomName={roomName}
+          onRoomNameChange={onRoomNameChange}
         />
       )}
       {/* Session view */}

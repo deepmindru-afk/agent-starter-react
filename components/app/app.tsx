@@ -36,20 +36,18 @@ export function App({ appConfig }: AppProps) {
     }
     return '';
   });
+  const [roomName, setRoomName] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return new URLSearchParams(window.location.search).get('room') || '';
+    }
+    return '';
+  });
 
   const tokenSource = useMemo(() => {
     return typeof process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT === 'string'
       ? getSandboxTokenSource(appConfig)
       : TokenSource.endpoint('/api/token');
   }, [appConfig]);
-
-  const getRoomName = () => {
-    if (typeof window !== 'undefined') {
-      const searchParams = new URLSearchParams(window.location.search);
-      return searchParams.get('room') || `va_room_${Math.floor(Math.random() * 10_000)}`;
-    }
-    return `va_room_${Math.floor(Math.random() * 10_000)}`;
-  };
 
   const getParticipantIdentity = () => {
     if (typeof window !== 'undefined') {
@@ -59,15 +57,15 @@ export function App({ appConfig }: AppProps) {
     return `va_user_${Math.floor(Math.random() * 10_000)}`;
   };
 
-  const roomName = getRoomName();
   const participantIdentity = getParticipantIdentity();
   const participantName = username || `va_user_${Math.floor(Math.random() * 10_000)}`;
+  const finalRoomName = roomName || `va_room_${Math.floor(Math.random() * 10_000)}`;
 
   const session = useSession(
     tokenSource,
     appConfig.agentName ? {
       agentName: appConfig.agentName,
-      roomName: roomName,
+      roomName: finalRoomName,
       participantName: participantName,
       participantIdentity: participantIdentity,
     } : undefined,
@@ -81,6 +79,8 @@ export function App({ appConfig }: AppProps) {
           appConfig={appConfig}
           username={username}
           onUsernameChange={setUsername}
+          roomName={roomName}
+          onRoomNameChange={setRoomName}
         />
       </main>
       <StartAudioButton label="Start Audio" />

@@ -23,6 +23,8 @@ interface WelcomeViewProps {
   onStartCall: () => void;
   username?: string;
   onUsernameChange?: (name: string) => void;
+  roomName?: string;
+  onRoomNameChange?: (name: string) => void;
 }
 
 export const WelcomeView = ({
@@ -30,6 +32,8 @@ export const WelcomeView = ({
   onStartCall,
   username = '',
   onUsernameChange,
+  roomName = '',
+  onRoomNameChange,
   ref,
 }: React.ComponentProps<'div'> & WelcomeViewProps) => {
   return (
@@ -47,6 +51,14 @@ export const WelcomeView = ({
           onChange={(e) => onUsernameChange?.(e.target.value)}
           placeholder="Ваше имя (необязательно)"
           className="mt-6 w-64 rounded-full border px-4 py-2 text-sm text-center placeholder:text-muted-foreground bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+
+        <input
+          type="text"
+          value={roomName}
+          onChange={(e) => onRoomNameChange?.(e.target.value)}
+          placeholder="Название комнаты (необязательно)"
+          className="mt-2 w-64 rounded-full border px-4 py-2 text-sm text-center placeholder:text-muted-foreground bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
         />
 
         <Button
