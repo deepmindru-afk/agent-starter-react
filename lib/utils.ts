@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { TokenSource } from 'livekit-client';
+import { TokenSource, type TokenSourceFetchOptions } from 'livekit-client';
 import { APP_CONFIG_DEFAULTS } from '@/app-config';
 import type { AppConfig } from '@/app-config';
 
@@ -96,14 +96,9 @@ export function getStyles(appConfig: AppConfig) {
  * @returns A token source for a sandboxed LiveKit session
  */
 export function getSandboxTokenSource(appConfig: AppConfig) {
-  return TokenSource.custom(async () => {
+  return TokenSource.custom(async (options: TokenSourceFetchOptions) => {
     const url = new URL(process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT!, window.location.origin);
     const sandboxId = appConfig.sandboxId ?? '';
-    const roomConfig = appConfig.agentName
-      ? {
-          agents: [{ agent_name: appConfig.agentName }],
-        }
-      : undefined;
 
     try {
       const res = await fetch(url.toString(), {
@@ -113,10 +108,9 @@ export function getSandboxTokenSource(appConfig: AppConfig) {
           'X-Sandbox-Id': sandboxId,
         },
         body: JSON.stringify({
-          room_config: roomConfig,
-          room_name: "none",
-          participant_identity: "none",
-          participant_name: "none",
+          room_name: options.roomName ?? "none",
+          participant_identity: options.participantIdentity ?? "none",
+          participant_name: options.participantName ?? "none",
         }),
       });
       return await res.json();
