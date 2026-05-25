@@ -7,6 +7,8 @@ type ConnectionDetails = {
   roomName: string;
   participantName: string;
   participantToken: string;
+  participantMetadata?: string;
+  participantAttributes?: Record<string, string>;
 };
 
 // NOTE: you are expected to define the following environment variables in `.env.local`:
@@ -41,9 +43,11 @@ export async function POST(req: Request) {
     const roomName: string = body?.room_name;
     const participantIdentity: string = body?.participant_identity;
     const participantName: string = body?.participant_name;
+    const participantMetadata: string | undefined = body?.participant_metadata;
+    const participantAttributes: Record<string, string> | undefined = body?.participant_attributes;
 
     const participantToken = await createParticipantToken(
-      { identity: participantIdentity, name: participantName },
+      { identity: participantIdentity, name: participantName, metadata: participantMetadata, attributes: participantAttributes },
       roomName,
       roomConfig
     );
@@ -53,6 +57,8 @@ export async function POST(req: Request) {
       roomName,
       participantName,
       participantToken,
+      participantMetadata,
+      participantAttributes,
     };
     const headers = new Headers({
       'Cache-Control': 'no-store',

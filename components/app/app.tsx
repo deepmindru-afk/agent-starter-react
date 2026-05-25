@@ -72,6 +72,8 @@ export function App({ appConfig }: AppProps) {
           participant_identity: participantIdentity,
           participant_name: participantName,
           room_config: roomConfig,
+          participant_metadata: JSON.stringify({ role: 'user', department: 'engineering' }),
+          participant_attributes: { region: 'us-east', language: 'en', timezone: 'UTC' },
         }),
       });
       return await res.json();
