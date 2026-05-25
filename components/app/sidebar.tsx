@@ -4,6 +4,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { Clock, MessageSquareTextIcon, XIcon } from 'lucide-react';
 import { useAgent, useRoomContext } from '@livekit/components-react';
 import { AnimatePresence, motion } from 'motion/react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/shadcn/utils';
 
 interface Session {
@@ -11,6 +18,11 @@ interface Session {
   title: string;
   preview: string;
   updatedAt: string;
+}
+
+interface Model {
+  id: string;
+  name: string;
 }
 
 interface SidebarProps {
@@ -23,6 +35,22 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const { agent } = useAgent();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(false);
+  const [models, setModels] = useState<Model[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>('');
+
+  useEffect(() => {
+    fetch('/api/models', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const list: Model[] = data.models ?? [];
+        setModels(list);
+        if (list.length > 0) setSelectedModel(list[0].id);
+      })
+      .catch(() => {});
+  }, []);
 
   const load = useCallback(async () => {
     const participant = room?.localParticipant;
@@ -89,6 +117,26 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 <XIcon className="size-4" />
               </button>
             </div>
+
+            {models.length > 0 && (
+              <div className="border-b border-sidebar-border px-4 py-3">
+                <div className="mb-2 text-xs font-semibold text-sidebar-foreground/70">
+                  Model
+                </div>
+                <Select value={selectedModel} onValueChange={setSelectedModel}>
+                  <SelectTrigger className="w-full bg-sidebar text-sidebar-foreground text-sm">
+                    <SelectValue placeholder="Select model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {models.map((model) => (
+                      <SelectItem key={model.id} value={model.id}>
+                        {model.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="flex-1 overflow-y-auto p-3">
               {loading ? (
