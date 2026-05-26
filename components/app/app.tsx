@@ -98,7 +98,7 @@ export function App({ appConfig }: AppProps) {
 
       <button
         onClick={() => setSidebarOpen(true)}
-        className="fixed right-3 top-3 z-40 rounded-md p-2 transition-colors hover:bg-accent md:right-6 md:top-6"
+        className="fixed left-3 top-3 z-50 rounded-md p-2 transition-colors hover:bg-accent md:left-6 md:top-6"
         aria-label="Open sidebar"
       >
         <Menu className="size-5" />
