@@ -205,6 +205,27 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
           ))}
         </div>
       )}
+
+      {chatOpen && !isCommandActive && (
+        <div className="mx-1 mb-2 flex flex-wrap gap-1.5">
+          {COMMANDS.map((cmd) => (
+            <button
+              key={cmd.command}
+              type="button"
+              onClick={() => {
+                setMessage(cmd.command + ' ');
+                setShowCommands(false);
+                inputRef.current?.focus();
+              }}
+              className="bg-muted hover:bg-foreground/10 border-border inline-flex cursor-pointer items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors"
+            >
+              <CommandIcon className="size-3 shrink-0 opacity-60" />
+              {cmd.command}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="flex grow items-end gap-2 rounded-md pl-1">
         <textarea
           autoFocus
