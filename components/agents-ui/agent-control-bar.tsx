@@ -1,8 +1,8 @@
 'use client';
 
-import { type ComponentProps, useEffect, useRef, useState } from 'react';
+import { type ComponentProps, useEffect, useMemo, useRef, useState } from 'react';
 import { Track } from 'livekit-client';
-import { Loader, MessageSquareTextIcon, SendHorizontal } from 'lucide-react';
+import { CommandIcon, Loader, MessageSquareTextIcon, SendHorizontal } from 'lucide-react';
 import { type MotionProps, motion } from 'motion/react';
 import { useChat } from '@livekit/components-react';
 import { AgentDisconnectButton } from '@/components/agents-ui/agent-disconnect-button';
@@ -61,6 +61,24 @@ const MOTION_PROPS: MotionProps = {
   },
 };
 
+const COMMANDS = [
+  { command: '/help', description: 'Show available commands', example: '/help' },
+  { command: '/clear', description: 'Clear the chat transcript', example: '/clear' },
+  { command: '/feedback', description: 'Send feedback about the agent', example: '/feedback The agent was helpful' },
+  { command: '/summarize', description: 'Summarize the conversation', example: '/summarize' },
+  { command: '/voice', description: 'Switch to voice-only mode', example: '/voice' },
+] as const;
+
+function getCommandFromText(text: string): string | null {
+  const match = text.match(/(?:^|\s)(\/[a-zA-Z]*)$/);
+  return match ? match[1] : null;
+}
+
+function getCommandText(text: string): string {
+  const match = text.match(/(?:^|\s)(\/[a-zA-Z]*)/);
+  return match ? match[0].trimStart() : '';
+}
+
 interface AgentChatInputProps {
   chatOpen: boolean;
   onSend?: (message: string) => void;
@@ -69,9 +87,35 @@ interface AgentChatInputProps {
 
 function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentChatInputProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const [isSending, setIsSending] = useState(false);
   const [message, setMessage] = useState<string>('');
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [showCommands, setShowCommands] = useState(false);
   const isDisabled = isSending || message.trim().length === 0;
+
+  const activeCommandPrefix = useMemo(() => getCommandFromText(message), [message]);
+  const filteredCommands = useMemo(() => {
+    if (!activeCommandPrefix) return [];
+    const query = activeCommandPrefix.toLowerCase();
+    return COMMANDS.filter((c) => c.command.startsWith(query));
+  }, [activeCommandPrefix]);
+
+  const isCommandActive = showCommands && filteredCommands.length > 0;
+
+  useEffect(() => {
+    setShowCommands(activeCommandPrefix !== null);
+    setSelectedIndex(0);
+  }, [activeCommandPrefix]);
+
+  const handleSelectCommand = (cmd: (typeof COMMANDS)[number]) => {
+    const text = getCommandText(message);
+    const before = message.slice(0, message.lastIndexOf(text));
+    const after = message.slice(message.lastIndexOf(text) + text.length);
+    setMessage(before + cmd.command + ' ' + after);
+    setShowCommands(false);
+    inputRef.current?.focus();
+  };
 
   const handleSend = async () => {
     if (isDisabled) {
@@ -90,6 +134,29 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
   };
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (isCommandActive) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev + 1) % filteredCommands.length);
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev - 1 + filteredCommands.length) % filteredCommands.length);
+        return;
+      }
+      if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault();
+        handleSelectCommand(filteredCommands[selectedIndex]);
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowCommands(false);
+        return;
+      }
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -103,33 +170,64 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
 
   useEffect(() => {
     if (chatOpen) return;
-    // when not disabled refocus on input
     inputRef.current?.focus();
   }, [chatOpen]);
 
   return (
-    <div className={cn('mb-3 flex grow items-end gap-2 rounded-md pl-1 text-sm', className)}>
-      <textarea
-        autoFocus
-        ref={inputRef}
-        value={message}
-        disabled={!chatOpen || isSending}
-        placeholder="Type something..."
-        onKeyDown={handleKeyDown}
-        onChange={(e) => setMessage(e.target.value)}
-        className="field-sizing-content max-h-16 min-h-8 flex-1 resize-none py-2 text-base [scrollbar-width:thin] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-      />
-      <Button
-        size="icon"
-        type="button"
-        disabled={isDisabled}
-        variant={isDisabled ? 'secondary' : 'default'}
-        title={isSending ? 'Sending...' : 'Send'}
-        onClick={handleButtonClick}
-        className="self-end disabled:cursor-not-allowed"
-      >
-        {isSending ? <Loader className="animate-spin" /> : <SendHorizontal />}
-      </Button>
+    <div className={cn('relative mb-3 flex grow flex-col text-sm', className)}>
+      {isCommandActive && (
+        <div
+          ref={listRef}
+          role="listbox"
+          className="bg-popover text-popover-foreground border-border absolute bottom-full left-0 right-0 mb-2 rounded-lg border p-1 shadow-md"
+        >
+          {filteredCommands.map((cmd, i) => (
+            <button
+              key={cmd.command}
+              role="option"
+              aria-selected={i === selectedIndex}
+              onClick={() => handleSelectCommand(cmd)}
+              onMouseEnter={() => setSelectedIndex(i)}
+              className={cn(
+                'flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition-colors',
+                i === selectedIndex && 'bg-muted text-foreground'
+              )}
+            >
+              <CommandIcon className="text-muted-foreground size-4 shrink-0" />
+              <div className="flex min-w-0 flex-1 flex-col">
+                <span className="font-medium">{cmd.command}</span>
+                <span className="text-muted-foreground text-xs">{cmd.description}</span>
+              </div>
+              <span className="text-muted-foreground ml-auto hidden truncate text-xs md:block">
+                {cmd.example}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="flex grow items-end gap-2 rounded-md pl-1">
+        <textarea
+          autoFocus
+          ref={inputRef}
+          value={message}
+          disabled={!chatOpen || isSending}
+          placeholder="Type / for commands, or type something..."
+          onKeyDown={handleKeyDown}
+          onChange={(e) => setMessage(e.target.value)}
+          className="field-sizing-content max-h-16 min-h-8 flex-1 resize-none py-2 text-base [scrollbar-width:thin] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        />
+        <Button
+          size="icon"
+          type="button"
+          disabled={isDisabled}
+          variant={isDisabled ? 'secondary' : 'default'}
+          title={isSending ? 'Sending...' : 'Send'}
+          onClick={handleButtonClick}
+          className="self-end disabled:cursor-not-allowed"
+        >
+          {isSending ? <Loader className="animate-spin" /> : <SendHorizontal />}
+        </Button>
+      </div>
     </div>
   );
 }
