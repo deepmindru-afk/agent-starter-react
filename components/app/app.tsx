@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Menu } from 'lucide-react';
 import { TokenSource } from 'livekit-client';
-import { useSession, useSessionContext } from '@livekit/components-react';
+import { useSession } from '@livekit/components-react';
 import { WarningIcon } from '@phosphor-icons/react/dist/ssr';
 import type { AppConfig } from '@/app-config';
 import { AgentSessionProvider } from '@/components/agents-ui/agent-session-provider';
@@ -81,7 +81,7 @@ export function App({ appConfig }: AppProps) {
   }, [appConfig, finalRoomName, participantIdentity, participantName]);
 
   const session = useSession(tokenSource);
-  const { isConnected } = useSessionContext();
+  const isConnected = session.isConnected;
 
   return (
     <AgentSessionProvider session={session}>
