@@ -1,8 +1,9 @@
 'use client';
 
 import { type ComponentProps, useEffect, useMemo, useRef, useState } from 'react';
+import type { FileUIPart } from 'ai';
 import { Track } from 'livekit-client';
-import { CommandIcon, Loader, MessageSquareTextIcon, SendHorizontal } from 'lucide-react';
+import { CommandIcon, Loader, MessageSquareTextIcon, PaperclipIcon, SendHorizontal, XIcon } from 'lucide-react';
 import { type MotionProps, motion } from 'motion/react';
 import { useChat } from '@livekit/components-react';
 import { AgentDisconnectButton } from '@/components/agents-ui/agent-disconnect-button';
@@ -81,18 +82,20 @@ function getCommandText(text: string): string {
 
 interface AgentChatInputProps {
   chatOpen: boolean;
-  onSend?: (message: string) => void;
+  onSend?: (message: string, files?: FileUIPart[]) => void;
   className?: string;
 }
 
 function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentChatInputProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSending, setIsSending] = useState(false);
   const [message, setMessage] = useState<string>('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [showCommands, setShowCommands] = useState(false);
-  const isDisabled = isSending || message.trim().length === 0;
+  const [attachments, setAttachments] = useState<{ file: File; preview: string }[]>([]);
+  const isDisabled = isSending || (message.trim().length === 0 && attachments.length === 0);
 
   const activeCommandPrefix = useMemo(() => getCommandFromText(message), [message]);
   const filteredCommands = useMemo(() => {
@@ -117,6 +120,19 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
     inputRef.current?.focus();
   };
 
+  const convertFilesToUIParts = async (): Promise<FileUIPart[]> => {
+    return Promise.all(
+      attachments.map(async ({ file }) => {
+        const buffer = await file.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        const binary = Array.from(bytes).map((b) => String.fromCharCode(b)).join('');
+        const base64 = btoa(binary);
+        const url = `data:${file.type};base64,${base64}`;
+        return { type: 'file' as const, mediaType: file.type, filename: file.name, url };
+      })
+    );
+  };
+
   const handleSend = async () => {
     if (isDisabled) {
       return;
@@ -124,13 +140,33 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
 
     try {
       setIsSending(true);
-      await onSend(message.trim());
+      const files = attachments.length > 0 ? await convertFilesToUIParts() : undefined;
+      await onSend(message.trim(), files);
       setMessage('');
+      setAttachments([]);
     } catch (error) {
       console.error(error);
     } finally {
       setIsSending(false);
     }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files || []);
+    const newAttachments = selected.map((file) => ({
+      file,
+      preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : '',
+    }));
+    setAttachments((prev) => [...prev, ...newAttachments]);
+    e.target.value = '';
+  };
+
+  const handleRemoveAttachment = (index: number) => {
+    setAttachments((prev) => {
+      const removed = prev[index];
+      if (removed?.preview) URL.revokeObjectURL(removed.preview);
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -208,7 +244,7 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
 
       {chatOpen && !isCommandActive && (
         <div className="mx-1 mb-2 flex flex-wrap gap-1.5">
-          {COMMANDS.map((cmd) => (
+          {COMMANDS.slice(0, 4).map((cmd) => (
             <button
               key={cmd.command}
               type="button"
@@ -226,6 +262,35 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
         </div>
       )}
 
+      {attachments.length > 0 && (
+        <div className="mx-1 mb-2 flex flex-wrap gap-2">
+          {attachments.map((att, i) => (
+            <div key={i} className="group relative size-16 overflow-hidden rounded-lg border">
+              {att.preview ? (
+                <img
+                  alt={att.file.name}
+                  className="size-full object-cover"
+                  height={64}
+                  src={att.preview}
+                  width={64}
+                />
+              ) : (
+                <div className="bg-muted text-muted-foreground flex size-full items-center justify-center text-xs">
+                  <PaperclipIcon className="size-4" />
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => handleRemoveAttachment(i)}
+                className="bg-background/80 hover:bg-background absolute top-0.5 right-0.5 flex size-5 items-center justify-center rounded-full opacity-0 transition-opacity group-hover:opacity-100"
+              >
+                <XIcon className="size-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="flex grow items-end gap-2 rounded-md pl-1">
         <textarea
           autoFocus
@@ -237,17 +302,38 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
           onChange={(e) => setMessage(e.target.value)}
           className="field-sizing-content max-h-16 min-h-8 flex-1 resize-none py-2 text-base [scrollbar-width:thin] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         />
-        <Button
-          size="icon"
-          type="button"
-          disabled={isDisabled}
-          variant={isDisabled ? 'secondary' : 'default'}
-          title={isSending ? 'Sending...' : 'Send'}
-          onClick={handleButtonClick}
-          className="self-end disabled:cursor-not-allowed"
-        >
-          {isSending ? <Loader className="animate-spin" /> : <SendHorizontal />}
-        </Button>
+        <div className="flex items-end gap-1 self-end">
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*,.pdf,.doc,.docx,.txt,.csv,.json"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          <Button
+            size="icon"
+            type="button"
+            variant="ghost"
+            disabled={!chatOpen || isSending}
+            title="Attach file"
+            onClick={() => fileInputRef.current?.click()}
+            className="text-muted-foreground hover:text-foreground size-9 shrink-0"
+          >
+            <PaperclipIcon className="size-5" />
+          </Button>
+          <Button
+            size="icon"
+            type="button"
+            disabled={isDisabled}
+            variant={isDisabled ? 'secondary' : 'default'}
+            title={isSending ? 'Sending...' : 'Send'}
+            onClick={handleButtonClick}
+            className="disabled:cursor-not-allowed"
+          >
+            {isSending ? <Loader className="animate-spin" /> : <SendHorizontal />}
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -384,8 +470,13 @@ export function AgentControlBar({
     handleCameraDeviceSelectError,
   } = useInputControls({ onDeviceError, saveUserChoices });
 
-  const handleSendMessage = async (message: string) => {
-    await send(message);
+  const handleSendMessage = async (message: string, files?: FileUIPart[]) => {
+    let text = message;
+    if (files && files.length > 0) {
+      const fileRefs = files.map((f) => `[${f.filename || f.mediaType}](${f.url})`).join(' ');
+      text = text ? `${text} ${fileRefs}` : fileRefs;
+    }
+    await send(text);
   };
 
   const visibleControls = {
