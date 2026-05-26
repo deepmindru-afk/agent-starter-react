@@ -123,7 +123,13 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 <div className="mb-2 text-xs font-semibold text-sidebar-foreground/70">
                   Model
                 </div>
-                <Select value={selectedModel} onValueChange={setSelectedModel}>
+                <Select
+                  value={selectedModel}
+                  onValueChange={(value) => {
+                    setSelectedModel(value);
+                    room?.localParticipant?.setAttributes({ current_model: value });
+                  }}
+                >
                   <SelectTrigger className="w-full bg-sidebar text-sidebar-foreground text-sm">
                     <SelectValue placeholder="Select model" />
                   </SelectTrigger>
