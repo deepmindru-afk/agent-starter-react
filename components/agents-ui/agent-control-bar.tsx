@@ -310,7 +310,7 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
           ref={inputRef}
           value={message}
           disabled={!chatOpen || isSending}
-          placeholder="Type / for commands, or type something..."
+          placeholder="Type / for commands..."
           onKeyDown={handleKeyDown}
           onChange={(e) => setMessage(e.target.value)}
           className="field-sizing-content max-h-16 min-h-8 flex-1 resize-none py-2 text-base [scrollbar-width:thin] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
