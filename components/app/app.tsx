@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Menu } from 'lucide-react';
 import { TokenSource } from 'livekit-client';
-import { useSession } from '@livekit/components-react';
+import { useSession, useSessionContext } from '@livekit/components-react';
 import { WarningIcon } from '@phosphor-icons/react/dist/ssr';
 import type { AppConfig } from '@/app-config';
 import { AgentSessionProvider } from '@/components/agents-ui/agent-session-provider';
@@ -81,6 +81,7 @@ export function App({ appConfig }: AppProps) {
   }, [appConfig, finalRoomName, participantIdentity, participantName]);
 
   const session = useSession(tokenSource);
+  const { isConnected } = useSessionContext();
 
   return (
     <AgentSessionProvider session={session}>
@@ -96,13 +97,15 @@ export function App({ appConfig }: AppProps) {
       </main>
       <StartAudioButton label="Start Audio" />
 
-      <button
-        onClick={() => setSidebarOpen(true)}
-        className="fixed left-3 top-3 z-50 rounded-md p-2 transition-colors hover:bg-accent md:left-6 md:top-6"
-        aria-label="Open sidebar"
-      >
-        <Menu className="size-5" />
-      </button>
+      {isConnected && (
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="fixed left-3 top-3 z-50 rounded-md p-2 transition-colors hover:bg-accent md:left-6 md:top-6"
+          aria-label="Open sidebar"
+        >
+          <Menu className="size-5" />
+        </button>
+      )}
 
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
