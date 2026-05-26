@@ -81,7 +81,7 @@ function getCommandText(text: string): string {
 
 interface AgentChatInputProps {
   chatOpen: boolean;
-  onSend?: (message: string, fileNames?: string[]) => void;
+  onSend?: (message: string, urls?: string[], fileNames?: string[]) => void;
   className?: string;
 }
 
@@ -90,11 +90,12 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
   const listRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSending, setIsSending] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState<string>('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [showCommands, setShowCommands] = useState(false);
   const [attachments, setAttachments] = useState<{ file: File; preview: string }[]>([]);
-  const isDisabled = isSending || (message.trim().length === 0 && attachments.length === 0);
+  const isDisabled = isSending || isUploading || (message.trim().length === 0 && attachments.length === 0);
 
   const activeCommandPrefix = useMemo(() => getCommandFromText(message), [message]);
   const filteredCommands = useMemo(() => {
@@ -119,6 +120,21 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
     inputRef.current?.focus();
   };
 
+  const uploadFiles = async (): Promise<{ url: string; filename: string }[]> => {
+    if (attachments.length === 0) return [];
+    const formData = new FormData();
+    for (const att of attachments) {
+      formData.append('files', att.file);
+    }
+    const res = await fetch('/api/upload', { method: 'POST', body: formData });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Upload failed');
+    }
+    const data = await res.json();
+    return data.files;
+  };
+
   const handleSend = async () => {
     if (isDisabled) {
       return;
@@ -126,13 +142,25 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
 
     try {
       setIsSending(true);
-      await onSend(message.trim(), attachments.map((a) => a.file.name));
+      if (attachments.length > 0) {
+        setIsUploading(true);
+        const uploaded = await uploadFiles();
+        setIsUploading(false);
+        await onSend(
+          message.trim(),
+          uploaded.map((u) => u.url),
+          uploaded.map((u) => u.filename)
+        );
+      } else {
+        await onSend(message.trim());
+      }
       setMessage('');
       setAttachments([]);
     } catch (error) {
       console.error(error);
     } finally {
       setIsSending(false);
+      setIsUploading(false);
     }
   };
 
@@ -455,10 +483,12 @@ export function AgentControlBar({
     handleCameraDeviceSelectError,
   } = useInputControls({ onDeviceError, saveUserChoices });
 
-  const handleSendMessage = async (message: string, fileNames?: string[]) => {
+  const handleSendMessage = async (message: string, urls?: string[], fileNames?: string[]) => {
     let text = message;
-    if (fileNames && fileNames.length > 0) {
-      const fileRefs = fileNames.map((n) => `[${n}]`).join(' ');
+    if (urls && urls.length > 0) {
+      const fileRefs = urls
+        .map((url, i) => `[${fileNames?.[i] || 'File'}](${window.location.origin}${url})`)
+        .join(' ');
       text = text ? `${text} ${fileRefs}` : fileRefs;
     }
     await send(text);
