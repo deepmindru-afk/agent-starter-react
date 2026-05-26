@@ -1,7 +1,6 @@
 'use client';
 
 import { type ComponentProps, useEffect, useMemo, useRef, useState } from 'react';
-import type { FileUIPart } from 'ai';
 import { Track } from 'livekit-client';
 import { CommandIcon, Loader, MessageSquareTextIcon, PaperclipIcon, SendHorizontal, XIcon } from 'lucide-react';
 import { type MotionProps, motion } from 'motion/react';
@@ -82,7 +81,7 @@ function getCommandText(text: string): string {
 
 interface AgentChatInputProps {
   chatOpen: boolean;
-  onSend?: (message: string, files?: FileUIPart[]) => void;
+  onSend?: (message: string, fileNames?: string[]) => void;
   className?: string;
 }
 
@@ -120,19 +119,6 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
     inputRef.current?.focus();
   };
 
-  const convertFilesToUIParts = async (): Promise<FileUIPart[]> => {
-    return Promise.all(
-      attachments.map(async ({ file }) => {
-        const buffer = await file.arrayBuffer();
-        const bytes = new Uint8Array(buffer);
-        const binary = Array.from(bytes).map((b) => String.fromCharCode(b)).join('');
-        const base64 = btoa(binary);
-        const url = `data:${file.type};base64,${base64}`;
-        return { type: 'file' as const, mediaType: file.type, filename: file.name, url };
-      })
-    );
-  };
-
   const handleSend = async () => {
     if (isDisabled) {
       return;
@@ -140,8 +126,7 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
 
     try {
       setIsSending(true);
-      const files = attachments.length > 0 ? await convertFilesToUIParts() : undefined;
-      await onSend(message.trim(), files);
+      await onSend(message.trim(), attachments.map((a) => a.file.name));
       setMessage('');
       setAttachments([]);
     } catch (error) {
@@ -470,10 +455,10 @@ export function AgentControlBar({
     handleCameraDeviceSelectError,
   } = useInputControls({ onDeviceError, saveUserChoices });
 
-  const handleSendMessage = async (message: string, files?: FileUIPart[]) => {
+  const handleSendMessage = async (message: string, fileNames?: string[]) => {
     let text = message;
-    if (files && files.length > 0) {
-      const fileRefs = files.map((f) => `[${f.filename || f.mediaType}](${f.url})`).join(' ');
+    if (fileNames && fileNames.length > 0) {
+      const fileRefs = fileNames.map((n) => `[${n}]`).join(' ');
       text = text ? `${text} ${fileRefs}` : fileRefs;
     }
     await send(text);
