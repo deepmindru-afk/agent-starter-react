@@ -242,7 +242,7 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
         </div>
       )}
 
-      {chatOpen && !isCommandActive && (
+      {chatOpen && activeCommandPrefix !== null && (
         <div className="mx-1 mb-2 flex flex-wrap gap-1.5">
           {COMMANDS.slice(0, 4).map((cmd) => (
             <button
