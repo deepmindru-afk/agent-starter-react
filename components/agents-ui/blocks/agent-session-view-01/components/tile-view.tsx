@@ -5,6 +5,7 @@ import {
   type TrackReference,
   VideoTrack,
   useLocalParticipant,
+  useRemoteParticipants,
   useTracks,
   useVoiceAssistant,
 } from '@livekit/components-react';
@@ -95,10 +96,27 @@ export function TileLayout({
   const { videoTrack: agentVideoTrack } = useVoiceAssistant();
   const [screenShareTrack] = useTracks([Track.Source.ScreenShare]);
   const cameraTrack: TrackReference | undefined = useLocalTrackRef(Track.Source.Camera);
+  const remoteParticipants = useRemoteParticipants();
 
   const isCameraEnabled = cameraTrack && !cameraTrack.publication.isMuted;
   const isScreenShareEnabled = screenShareTrack && !screenShareTrack.publication.isMuted;
   const hasSecondTile = isCameraEnabled || isScreenShareEnabled;
+
+  const remoteVideoTracks = useMemo(() => {
+    return remoteParticipants
+      .filter((p) => {
+        const pub = p.getTrackPublication(Track.Source.Camera);
+        return pub && !pub.isMuted;
+      })
+      .map(
+        (p) =>
+          ({
+            source: Track.Source.Camera,
+            participant: p,
+            publication: p.getTrackPublication(Track.Source.Camera)!,
+          }) as TrackReference
+      );
+  }, [remoteParticipants]);
 
   const animationDelay = chatOpen ? 0 : 0.15;
   const isAvatar = agentVideoTrack !== undefined;
@@ -247,6 +265,26 @@ export function TileLayout({
             </AnimatePresence>
           </div>
         </div>
+        {remoteVideoTracks.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-2 pt-2">
+            {remoteVideoTracks.map((track) => (
+              <div
+                key={track.participant.identity}
+                className="bg-muted relative aspect-square size-[90px] overflow-hidden rounded-md"
+              >
+                <VideoTrack
+                  trackRef={track}
+                  width={track.publication.dimensions?.width ?? 0}
+                  height={track.publication.dimensions?.height ?? 0}
+                  className="size-full object-cover"
+                />
+                <span className="absolute bottom-0 left-0 right-0 truncate bg-black/50 px-1 text-center text-xs text-white">
+                  {track.participant.name || track.participant.identity}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
