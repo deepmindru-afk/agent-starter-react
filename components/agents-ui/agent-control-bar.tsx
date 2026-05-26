@@ -67,6 +67,8 @@ const COMMANDS = [
   { command: '/feedback', description: 'Send feedback about the agent', example: '/feedback The agent was helpful' },
   { command: '/summarize', description: 'Summarize the conversation', example: '/summarize' },
   { command: '/voice', description: 'Switch to voice-only mode', example: '/voice' },
+  { command: '/realtime', description: 'Switch to real-time mode', example: '/realtime' },
+  { command: '/call', description: 'Initiate a call', example: '/call' },
 ] as const;
 
 function getCommandFromText(text: string): string | null {
