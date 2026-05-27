@@ -19,6 +19,7 @@ import {
   usePublishPermissions,
 } from '@/hooks/agents-ui/use-agent-control-bar';
 import { cn } from '@/lib/shadcn/utils';
+import { sendFile } from '@/lib/send-file';
 
 const LK_TOGGLE_VARIANT_1 = [
   'data-[state=off]:bg-accent data-[state=off]:hover:bg-foreground/10',
@@ -466,16 +467,8 @@ export function AgentControlBar({
     if (files && files.length > 0 && session.room.localParticipant) {
       const fileNames: string[] = [];
       for (const file of files) {
-        const buffer = await file.arrayBuffer();
-        const meta = JSON.stringify({ name: file.name, type: file.type, size: file.size });
-        const metaBytes = new TextEncoder().encode(meta);
-        const dataLen = metaBytes.length + 1 + buffer.byteLength;
-        const combined = new Uint8Array(dataLen);
-        combined.set(metaBytes, 0);
-        combined[metaBytes.length] = 0;
-        combined.set(new Uint8Array(buffer), metaBytes.length + 1);
-        await session.room.localParticipant.publishData(combined, { topic: 'file', reliable: true });
-        fileNames.push(file.name);
+        const info = await sendFile(session.room.localParticipant, file);
+        fileNames.push(info.name);
       }
       const fileRefs = fileNames.map((n) => `[${n}]`).join(' ');
       text = text ? `${text} ${fileRefs}` : fileRefs;

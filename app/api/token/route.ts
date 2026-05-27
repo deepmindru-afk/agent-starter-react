@@ -38,7 +38,9 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const roomConfig = RoomConfiguration.fromJson(body?.room_config, { ignoreUnknownFields: true });
+    const roomConfig = body?.room_config
+      ? RoomConfiguration.fromJson(body.room_config, { ignoreUnknownFields: true })
+      : undefined;
 
     const roomName: string = body?.room_name;
     const participantIdentity: string = body?.participant_identity;
