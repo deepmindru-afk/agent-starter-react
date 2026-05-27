@@ -4,7 +4,7 @@ import { type ComponentProps, useEffect, useMemo, useRef, useState } from 'react
 import { Track } from 'livekit-client';
 import { CommandIcon, Loader, MessageSquareTextIcon, PaperclipIcon, SendHorizontal, XIcon } from 'lucide-react';
 import { type MotionProps, motion } from 'motion/react';
-import { useChat } from '@livekit/components-react';
+import { useChat, useSessionContext } from '@livekit/components-react';
 import { AgentDisconnectButton } from '@/components/agents-ui/agent-disconnect-button';
 import { AgentTrackControl } from '@/components/agents-ui/agent-track-control';
 import {
@@ -83,7 +83,7 @@ function getCommandText(text: string): string {
 
 interface AgentChatInputProps {
   chatOpen: boolean;
-  onSend?: (message: string, urls?: string[], fileNames?: string[]) => void;
+  onSend?: (message: string, files?: File[]) => void;
   className?: string;
 }
 
@@ -92,12 +92,11 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
   const listRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSending, setIsSending] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState<string>('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [showCommands, setShowCommands] = useState(false);
   const [attachments, setAttachments] = useState<{ file: File; preview: string }[]>([]);
-  const isDisabled = isSending || isUploading || (message.trim().length === 0 && attachments.length === 0);
+  const isDisabled = isSending || (message.trim().length === 0 && attachments.length === 0);
 
   const activeCommandPrefix = useMemo(() => getCommandFromText(message), [message]);
   const filteredCommands = useMemo(() => {
@@ -122,21 +121,6 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
     inputRef.current?.focus();
   };
 
-  const uploadFiles = async (): Promise<{ url: string; filename: string }[]> => {
-    if (attachments.length === 0) return [];
-    const formData = new FormData();
-    for (const att of attachments) {
-      formData.append('files', att.file);
-    }
-    const res = await fetch('/api/upload', { method: 'POST', body: formData });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Upload failed');
-    }
-    const data = await res.json();
-    return data.files;
-  };
-
   const handleSend = async () => {
     if (isDisabled) {
       return;
@@ -144,25 +128,14 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
 
     try {
       setIsSending(true);
-      if (attachments.length > 0) {
-        setIsUploading(true);
-        const uploaded = await uploadFiles();
-        setIsUploading(false);
-        await onSend(
-          message.trim(),
-          uploaded.map((u) => u.url),
-          uploaded.map((u) => u.filename)
-        );
-      } else {
-        await onSend(message.trim());
-      }
+      const files = attachments.length > 0 ? attachments.map((a) => a.file) : undefined;
+      await onSend(message.trim(), files);
       setMessage('');
       setAttachments([]);
     } catch (error) {
       console.error(error);
     } finally {
       setIsSending(false);
-      setIsUploading(false);
     }
   };
 
@@ -485,14 +458,29 @@ export function AgentControlBar({
     handleCameraDeviceSelectError,
   } = useInputControls({ onDeviceError, saveUserChoices });
 
-  const handleSendMessage = async (message: string, urls?: string[], fileNames?: string[]) => {
+  const session = useSessionContext();
+
+  const handleSendMessage = async (message: string, files?: File[]) => {
     let text = message;
-    if (urls && urls.length > 0) {
-      const fileRefs = urls
-        .map((url, i) => `[${fileNames?.[i] || 'File'}](${window.location.origin}${url})`)
-        .join(' ');
+
+    if (files && files.length > 0 && session.room.localParticipant) {
+      const fileNames: string[] = [];
+      for (const file of files) {
+        const buffer = await file.arrayBuffer();
+        const meta = JSON.stringify({ name: file.name, type: file.type, size: file.size });
+        const metaBytes = new TextEncoder().encode(meta);
+        const dataLen = metaBytes.length + 1 + buffer.byteLength;
+        const combined = new Uint8Array(dataLen);
+        combined.set(metaBytes, 0);
+        combined[metaBytes.length] = 0;
+        combined.set(new Uint8Array(buffer), metaBytes.length + 1);
+        await session.room.localParticipant.publishData(combined, { topic: 'file', reliable: true });
+        fileNames.push(file.name);
+      }
+      const fileRefs = fileNames.map((n) => `[${n}]`).join(' ');
       text = text ? `${text} ${fileRefs}` : fileRefs;
     }
+
     await send(text);
   };
 
