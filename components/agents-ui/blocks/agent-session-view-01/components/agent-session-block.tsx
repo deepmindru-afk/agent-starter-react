@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { AnimatePresence, type MotionProps, motion } from 'motion/react';
 import { useAgent, useSessionContext, useSessionMessages } from '@livekit/components-react';
 import { AgentChatTranscript } from '@/components/agents-ui/agent-chat-transcript';
@@ -178,7 +178,16 @@ export function AgentSessionView_01({
   const session = useSessionContext();
   const { messages } = useSessionMessages(session);
   const [chatOpen, setChatOpen] = useState(false);
+  const [clearedAt, setClearedAt] = useState<number>(0);
   const { state: agentState } = useAgent();
+
+  const filteredMessages = clearedAt > 0
+    ? messages.filter((m) => m.timestamp > clearedAt)
+    : messages;
+
+  const handleClear = useCallback(() => {
+    setClearedAt(Date.now());
+  }, []);
 
   const controls: AgentControlBarControls = {
 
@@ -207,7 +216,7 @@ export function AgentSessionView_01({
             >
               <AgentChatTranscript
                 agentState={agentState}
-                messages={messages}
+                messages={filteredMessages}
                 className="mx-auto w-full max-w-2xl [&_.is-user>div]:rounded-[22px] [&>div>div]:px-4 [&>div>div]:pt-40 md:[&>div>div]:px-6"
               />
             </motion.div>
@@ -257,6 +266,7 @@ export function AgentSessionView_01({
             isConnected={session.isConnected}
             onDisconnect={session.end}
             onIsChatOpenChange={setChatOpen}
+            onClear={handleClear}
           />
         </div>
       </motion.div>

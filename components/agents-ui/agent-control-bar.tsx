@@ -31,6 +31,22 @@ const LK_TOGGLE_VARIANT_1 = [
   'dark:data-[state=off]:[&_~_button]:bg-accent dark:data-[state=off]:[&_~_button]:hover:bg-foreground/10',
 ];
 
+interface Command {
+  command: string;
+  description: string;
+  example: string;
+}
+
+const DEFAULT_COMMANDS: Command[] = [
+  { command: '/help', description: 'Show available commands', example: '/help' },
+  { command: '/clear', description: 'Clear the chat transcript', example: '/clear' },
+  { command: '/feedback', description: 'Send feedback about the agent', example: '/feedback The agent was helpful' },
+  { command: '/summarize', description: 'Summarize the conversation', example: '/summarize' },
+  { command: '/voice', description: 'Switch to voice-only mode', example: '/voice' },
+  { command: '/realtime', description: 'Switch to real-time mode', example: '/realtime' },
+  { command: '/call', description: 'Initiate a call', example: '/call' },
+];
+
 const LK_TOGGLE_VARIANT_2 = [
   'data-[state=off]:bg-accent data-[state=off]:hover:bg-foreground/10',
   'data-[state=off]:border-border data-[state=off]:hover:border-foreground/12',
@@ -62,15 +78,26 @@ const MOTION_PROPS: MotionProps = {
   },
 };
 
-const COMMANDS = [
-  { command: '/help', description: 'Show available commands', example: '/help' },
-  { command: '/clear', description: 'Clear the chat transcript', example: '/clear' },
-  { command: '/feedback', description: 'Send feedback about the agent', example: '/feedback The agent was helpful' },
-  { command: '/summarize', description: 'Summarize the conversation', example: '/summarize' },
-  { command: '/voice', description: 'Switch to voice-only mode', example: '/voice' },
-  { command: '/realtime', description: 'Switch to real-time mode', example: '/realtime' },
-  { command: '/call', description: 'Initiate a call', example: '/call' },
-] as const;
+function useCommands(): Command[] {
+  const [commands, setCommands] = useState<Command[]>(DEFAULT_COMMANDS);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch('/api/commands', { signal: controller.signal })
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data.commands) && data.commands.length > 0) {
+          setCommands(data.commands);
+        }
+      })
+      .catch(() => {});
+
+    return () => controller.abort();
+  }, []);
+
+  return commands;
+}
 
 function getCommandFromText(text: string): string | null {
   const match = text.match(/(?:^|\s)(\/[a-zA-Z]*)$/);
@@ -85,10 +112,12 @@ function getCommandText(text: string): string {
 interface AgentChatInputProps {
   chatOpen: boolean;
   onSend?: (message: string, files?: File[]) => void;
+  onClear?: () => void;
   className?: string;
 }
 
-function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentChatInputProps) {
+function AgentChatInput({ chatOpen, onSend = async () => {}, onClear, className }: AgentChatInputProps) {
+  const commands = useCommands();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -103,8 +132,8 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
   const filteredCommands = useMemo(() => {
     if (!activeCommandPrefix) return [];
     const query = activeCommandPrefix.toLowerCase();
-    return COMMANDS.filter((c) => c.command.startsWith(query));
-  }, [activeCommandPrefix]);
+    return commands.filter((c) => c.command.startsWith(query));
+  }, [activeCommandPrefix, commands]);
 
   const isCommandActive = showCommands && filteredCommands.length > 0;
 
@@ -113,7 +142,7 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
     setSelectedIndex(0);
   }, [activeCommandPrefix]);
 
-  const handleSelectCommand = (cmd: (typeof COMMANDS)[number]) => {
+  const handleSelectCommand = (cmd: Command) => {
     const text = getCommandText(message);
     const before = message.slice(0, message.lastIndexOf(text));
     const after = message.slice(message.lastIndexOf(text) + text.length);
@@ -127,10 +156,19 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
       return;
     }
 
+    const trimmed = message.trim();
+
+    if (trimmed === '/clear') {
+      onClear?.();
+      setMessage('');
+      setAttachments([]);
+      return;
+    }
+
     try {
       setIsSending(true);
       const files = attachments.length > 0 ? attachments.map((a) => a.file) : undefined;
-      await onSend(message.trim(), files);
+      await onSend(trimmed, files);
       setMessage('');
       setAttachments([]);
     } catch (error) {
@@ -233,7 +271,7 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, className }: AgentC
 
       {chatOpen && activeCommandPrefix !== null && (
         <div className="mx-1 mb-2 flex flex-wrap gap-1.5">
-          {COMMANDS.slice(0, 4).map((cmd) => (
+          {commands.slice(0, 4).map((cmd) => (
             <button
               key={cmd.command}
               type="button"
@@ -407,6 +445,8 @@ export interface AgentControlBarProps extends UseInputControlsProps {
   onIsChatOpenChange?: (open: boolean) => void;
   /** The callback for when a device error occurs. */
   onDeviceError?: (error: { source: Track.Source; error: Error }) => void;
+  /** The callback for when the chat transcript should be cleared. */
+  onClear?: () => void;
 }
 
 /**
@@ -442,6 +482,7 @@ export function AgentControlBar({
   onDisconnect,
   onDeviceError,
   onIsChatOpenChange,
+  onClear,
   className,
   ...props
 }: AgentControlBarProps & ComponentProps<'div'>) {
@@ -511,6 +552,7 @@ export function AgentControlBar({
         <AgentChatInput
           chatOpen={isChatOpen || isChatOpenUncontrolled}
           onSend={handleSendMessage}
+          onClear={onClear}
           className={cn(variant === 'livekit' && '[&_button]:rounded-full')}
         />
       </motion.div>
