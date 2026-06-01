@@ -6,6 +6,7 @@ import {
   Clock,
   History,
   KeyRound,
+  Link,
   MessageSquareTextIcon,
   Search,
   Sparkles,
@@ -75,12 +76,15 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const [search, setSearch] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [showApiKey, setShowApiKey] = useState(false);
+  const [apiEndpoint, setApiEndpoint] = useState('');
+  const [showApiEndpoint, setShowApiEndpoint] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
-  const fetchModels = useCallback(async (key: string) => {
+  const fetchModels = useCallback(async (key: string, endpoint: string) => {
+    const baseUrl = endpoint.trim() || 'https://lm.portalos.ru/v1/models';
     if (key.trim()) {
       try {
-        const res = await fetch('https://lm.portalos.ru/v1/models', {
+        const res = await fetch(baseUrl, {
           headers: { Authorization: `Bearer ${key.trim()}` },
         });
         if (res.ok) {
@@ -114,16 +118,25 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   }, []);
 
   useEffect(() => {
-    fetchModels(apiKey);
+    fetchModels(apiKey, apiEndpoint);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleApiKeyChange = useCallback(
     (value: string) => {
       setApiKey(value);
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => fetchModels(value), 500);
+      debounceRef.current = setTimeout(() => fetchModels(value, apiEndpoint), 500);
     },
-    [fetchModels]
+    [fetchModels, apiEndpoint]
+  );
+
+  const handleEndpointChange = useCallback(
+    (value: string) => {
+      setApiEndpoint(value);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => fetchModels(apiKey, value), 500);
+    },
+    [fetchModels, apiKey]
   );
 
   const load = useCallback(async () => {
@@ -223,6 +236,22 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                   onChange={(e) => handleApiKeyChange(e.target.value)}
                   placeholder="sk-..."
                   className="w-full rounded-md border border-sidebar-border/30 bg-sidebar-accent/20 py-1.5 px-2.5 text-xs text-sidebar-foreground placeholder:text-sidebar-foreground/30 focus:border-sidebar-ring/50 focus:outline-none focus:ring-1 focus:ring-sidebar-ring/30 transition-all"
+                />
+              )}
+              <button
+                onClick={() => setShowApiEndpoint(!showApiEndpoint)}
+                className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase transition-colors hover:text-sidebar-foreground/70"
+              >
+                <Link className="size-3" />
+                API Endpoint
+              </button>
+              {showApiEndpoint && (
+                <input
+                  type="text"
+                  value={apiEndpoint}
+                  onChange={(e) => handleEndpointChange(e.target.value)}
+                  placeholder="https://lm.portalos.ru/v1/models"
+                  className="mt-1 w-full rounded-md border border-sidebar-border/30 bg-sidebar-accent/20 py-1.5 px-2.5 text-xs text-sidebar-foreground placeholder:text-sidebar-foreground/30 focus:border-sidebar-ring/50 focus:outline-none focus:ring-1 focus:ring-sidebar-ring/30 transition-all"
                 />
               )}
             </div>
