@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Brain,
   Clock,
   History,
+  KeyRound,
   MessageSquareTextIcon,
   Search,
   Sparkles,
@@ -72,20 +73,58 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const [models, setModels] = useState<Model[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [search, setSearch] = useState('');
+  const [apiKey, setApiKey] = useState('');
+  const [showApiKey, setShowApiKey] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const fetchModels = useCallback(async (key: string) => {
+    if (key.trim()) {
+      try {
+        const res = await fetch('https://lm.portalos.ru/v1/models', {
+          headers: { Authorization: `Bearer ${key.trim()}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const list: Model[] = (data.data ?? []).map((m: { id: string }) => ({
+            id: m.id,
+            name: m.id,
+          }));
+          setModels(list);
+          if (list.length > 0)
+            setSelectedModel((prev) => (prev && list.some((m) => m.id === prev) ? prev : list[0].id));
+          return;
+        }
+      } catch {
+        // fall through to server fallback
+      }
+    }
+    try {
+      const res = await fetch('/api/models', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      const list: Model[] = data.models ?? [];
+      setModels(list);
+      if (list.length > 0)
+        setSelectedModel((prev) => (prev && list.some((m) => m.id === prev) ? prev : list[0].id));
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
-    fetch('/api/models', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        const list: Model[] = data.models ?? [];
-        setModels(list);
-        if (list.length > 0) setSelectedModel(list[0].id);
-      })
-      .catch(() => {});
-  }, []);
+    fetchModels(apiKey);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleApiKeyChange = useCallback(
+    (value: string) => {
+      setApiKey(value);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => fetchModels(value), 500);
+    },
+    [fetchModels]
+  );
 
   const load = useCallback(async () => {
     const participant = room?.localParticipant;
@@ -169,8 +208,27 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               </button>
             </div>
 
+            <div className="border-b border-sidebar-border/50 px-4 py-2.5">
+              <button
+                onClick={() => setShowApiKey(!showApiKey)}
+                className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase transition-colors hover:text-sidebar-foreground/70"
+              >
+                <KeyRound className="size-3" />
+                API Key
+              </button>
+              {showApiKey && (
+                <input
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => handleApiKeyChange(e.target.value)}
+                  placeholder="sk-..."
+                  className="w-full rounded-md border border-sidebar-border/30 bg-sidebar-accent/20 py-1.5 px-2.5 text-xs text-sidebar-foreground placeholder:text-sidebar-foreground/30 focus:border-sidebar-ring/50 focus:outline-none focus:ring-1 focus:ring-sidebar-ring/30 transition-all"
+                />
+              )}
+            </div>
+
             {models.length > 0 && (
-              <div className="border-b border-sidebar-border/50 px-4 py-3">
+              <div className="border-b border-sidebar-border/50 px-4 py-2.5">
                 <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase">
                   <Brain className="size-3" />
                   Model
