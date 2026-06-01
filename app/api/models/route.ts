@@ -2,14 +2,21 @@ import { NextResponse } from 'next/server';
 
 export const revalidate = 0;
 
-const LM_API_BASE = 'https://lm.portalos.ru';
-const BEARER_TOKEN = 'sk-bf-1d6629bc-fe02-44f8-8f43-1fc09a905120';
+const LM_API_BASE = process.env.LM_API_BASE_URL ?? 'https://lm.portalos.ru';
+const LM_API_KEY = process.env.LM_API_KEY;
 
 export async function POST() {
   try {
+    if (!LM_API_KEY) {
+      return NextResponse.json(
+        { error: 'LM_API_KEY environment variable is not configured' },
+        { status: 500 }
+      );
+    }
+
     const res = await fetch(`${LM_API_BASE}/v1/models`, {
       headers: {
-        Authorization: `Bearer ${BEARER_TOKEN}`,
+        Authorization: `Bearer ${LM_API_KEY}`,
       },
     });
 
