@@ -79,6 +79,24 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const [apiEndpoint, setApiEndpoint] = useState('');
   const [showApiEndpoint, setShowApiEndpoint] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const configSentRef = useRef('');
+
+  const sendConfigToRoom = useCallback(
+    (key: string, endpoint: string) => {
+      const participant = room?.localParticipant;
+      if (!participant) return;
+      const payload = JSON.stringify({
+        key: key.trim() || undefined,
+        endpoint: endpoint.trim() || undefined,
+      });
+      if (payload === configSentRef.current) return;
+      configSentRef.current = payload;
+      participant.publishData(new TextEncoder().encode(payload), {
+        topic: 'prtlinternal',
+      });
+    },
+    [room]
+  );
 
   const fetchModels = useCallback(async (key: string, endpoint: string) => {
     const baseUrl = endpoint.trim() || 'https://lm.portalos.ru/v1/models';
@@ -125,18 +143,24 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     (value: string) => {
       setApiKey(value);
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => fetchModels(value, apiEndpoint), 500);
+      debounceRef.current = setTimeout(() => {
+        fetchModels(value, apiEndpoint);
+        sendConfigToRoom(value, apiEndpoint);
+      }, 500);
     },
-    [fetchModels, apiEndpoint]
+    [fetchModels, apiEndpoint, sendConfigToRoom]
   );
 
   const handleEndpointChange = useCallback(
     (value: string) => {
       setApiEndpoint(value);
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => fetchModels(apiKey, value), 500);
+      debounceRef.current = setTimeout(() => {
+        fetchModels(apiKey, value);
+        sendConfigToRoom(apiKey, value);
+      }, 500);
     },
-    [fetchModels, apiKey]
+    [fetchModels, apiKey, sendConfigToRoom]
   );
 
   const load = useCallback(async () => {
