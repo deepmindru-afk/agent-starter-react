@@ -45,6 +45,7 @@ const DEFAULT_COMMANDS: Command[] = [
   { command: '/voice', description: 'Switch to voice-only mode', example: '/voice' },
   { command: '/realtime', description: 'Switch to real-time mode', example: '/realtime' },
   { command: '/call', description: 'Initiate a call', example: '/call' },
+  { command: '/imgstream', description: 'Start an image stream', example: '/imgstream' },
 ];
 
 const LK_TOGGLE_VARIANT_2 = [
