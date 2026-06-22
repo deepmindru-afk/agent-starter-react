@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Brain,
+  CalendarDays,
   Clock,
   History,
   KeyRound,
@@ -31,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/shadcn/utils';
+import { CalendarView } from '@/components/app/sidebar-calendar';
 
 interface Session {
   id: string;
@@ -153,6 +155,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const configSentRef = useRef('');
   const [showSampleTable, setShowSampleTable] = useState(false);
+  const [activeTab, setActiveTab] = useState<'chat' | 'calendar'>('chat');
 
   const sendConfigToRoom = useCallback(
     (key: string, endpoint: string) => {
@@ -303,46 +306,68 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               'bg-sidebar text-sidebar-foreground border-sidebar-border'
             )}
           >
-            <div className="relative flex items-center justify-between border-b border-sidebar-border bg-gradient-to-r from-sidebar to-sidebar/95 px-4 py-3">
-              <div className="flex items-center gap-2">
-                <div className="flex size-6 items-center justify-center rounded-md bg-sidebar-accent">
-                  <MessageSquareTextIcon className="size-3.5" />
-                </div>
-            <span className="text-sm font-semibold tracking-tight">Chat History</span>
-          </div>
+            <div className="flex items-center gap-1 border-b border-sidebar-border bg-gradient-to-r from-sidebar to-sidebar/95 px-3 py-2">
+              <button
+                onClick={() => setActiveTab('chat')}
+                className={cn(
+                  'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors',
+                  activeTab === 'chat'
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                    : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
+                )}
+              >
+                <MessageSquareTextIcon className="size-3.5" />
+                Chat
+              </button>
+              <button
+                onClick={() => setActiveTab('calendar')}
+                className={cn(
+                  'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors',
+                  activeTab === 'calendar'
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                    : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
+                )}
+              >
+                <CalendarDays className="size-3.5" />
+                Calendar
+              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md p-1.5 transition-colors"
+                    aria-label="Sidebar menu"
+                  >
+                    <MoreVertical className="size-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" sideOffset={6}>
+                  <DropdownMenuItem onClick={() => setShowSampleTable((v) => !v)}>
+                    <Table2 className="size-4" />
+                    {showSampleTable ? 'Hide Sample Table' : 'Show Sample Table'}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setShowApiKey((v) => !v)}>
+                    <KeyRound className="size-4" />
+                    {showApiKey ? 'Hide API Key' : 'Show API Key'}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-          <div className="flex items-center gap-0.5">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md p-1.5 transition-colors"
-                  aria-label="Sidebar menu"
-                >
-                  <MoreVertical className="size-4" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" sideOffset={6}>
-                <DropdownMenuItem onClick={() => setShowSampleTable((v) => !v)}>
-                  <Table2 className="size-4" />
-                  {showSampleTable ? 'Hide Sample Table' : 'Show Sample Table'}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setShowApiKey((v) => !v)}>
-                  <KeyRound className="size-4" />
-                  {showApiKey ? 'Hide API Key' : 'Show API Key'}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <button
+              <button
                 onClick={onClose}
                 className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md p-1.5 transition-colors"
               >
                 <XIcon className="size-4" />
               </button>
             </div>
-            </div>
 
+            {activeTab === 'calendar' && (
+              <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth p-3 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-sidebar-border/30 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
+                <CalendarView />
+              </div>
+            )}
+
+            {activeTab === 'chat' && (<>
             <div className="border-b border-sidebar-border/50 px-4 py-2.5">
               <button
                 onClick={() => setShowApiKey(!showApiKey)}
@@ -491,6 +516,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 </div>
               )}
             </div>
+            </>)}
           </motion.aside>
         </>
       )}

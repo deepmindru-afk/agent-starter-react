@@ -1,0 +1,155 @@
+'use client';
+
+import { useCallback, useMemo, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/shadcn/utils';
+
+const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+export function CalendarView() {
+  const today = useMemo(() => new Date(), []);
+  const [viewDate, setViewDate] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const startDayOfWeek = new Date(year, month, 1).getDay();
+
+  const weeks = useMemo(() => {
+    const cells: (number | null)[][] = [];
+    let week: (number | null)[] = [];
+    for (let i = 0; i < startDayOfWeek; i++) {
+      week.push(null);
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+      week.push(day);
+      if (week.length === 7) {
+        cells.push(week);
+        week = [];
+      }
+    }
+    if (week.length > 0) {
+      while (week.length < 7) week.push(null);
+      cells.push(week);
+    }
+    return cells;
+  }, [daysInMonth, startDayOfWeek]);
+
+  const prevMonth = useCallback(() => {
+    setViewDate(new Date(year, month - 1, 1));
+  }, [year, month]);
+
+  const nextMonth = useCallback(() => {
+    setViewDate(new Date(year, month + 1, 1));
+  }, [year, month]);
+
+  const isToday = useCallback(
+    (day: number) =>
+      today.getFullYear() === year && today.getMonth() === month && today.getDate() === day,
+    [today, year, month]
+  );
+
+  const isSelected = useCallback(
+    (day: number) =>
+      selectedDate?.getFullYear() === year &&
+      selectedDate?.getMonth() === month &&
+      selectedDate?.getDate() === day,
+    [selectedDate, year, month]
+  );
+
+  const monthLabel = new Date(year, month).toLocaleDateString(undefined, {
+    month: 'long',
+    year: 'numeric',
+  });
+
+  return (
+    <div className="select-none">
+      <div className="mb-1 flex items-center justify-between px-1">
+        <span className="text-xs font-semibold text-sidebar-foreground/70">{monthLabel}</span>
+        <div className="flex items-center gap-0.5">
+          <button
+            onClick={prevMonth}
+            className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md p-1 transition-colors"
+            aria-label="Previous month"
+          >
+            <ChevronLeft className="size-3.5" />
+          </button>
+          <button
+            onClick={() => setViewDate(new Date(today.getFullYear(), today.getMonth(), 1))}
+            className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md px-1.5 py-1 text-[10px] font-medium transition-colors"
+            aria-label="Today"
+          >
+            Today
+          </button>
+          <button
+            onClick={nextMonth}
+            className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md p-1 transition-colors"
+            aria-label="Next month"
+          >
+            <ChevronRight className="size-3.5" />
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-7 gap-0">
+        {DAYS_OF_WEEK.map((d) => (
+          <div
+            key={d}
+            className="py-1.5 text-center text-[10px] font-semibold tracking-wider text-sidebar-foreground/40 uppercase"
+          >
+            {d}
+          </div>
+        ))}
+        {weeks.map((week, wi) =>
+          week.map((day, di) => (
+            <button
+              key={`${wi}-${di}`}
+              disabled={day === null}
+              onClick={() => day && setSelectedDate(new Date(year, month, day))}
+              className={cn(
+                'relative mx-auto flex size-7 items-center justify-center rounded-full text-[11px] transition-all',
+                day === null && 'pointer-events-none opacity-0',
+                !isSelected(day ?? 0) && 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                isSelected(day ?? 0) && 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold',
+                isToday(day ?? 0) &&
+                  !isSelected(day ?? 0) &&
+                  'ring-1 ring-sidebar-foreground/30'
+              )}
+            >
+              {day}
+            </button>
+          ))
+        )}
+      </div>
+
+      {selectedDate && (
+        <div className="mt-2 rounded-md border border-sidebar-border/30 bg-sidebar-accent/20 px-2.5 py-2">
+          <p className="text-[11px] text-sidebar-foreground/60">
+            Selected: <span className="font-semibold text-sidebar-foreground/80">
+              {selectedDate.toLocaleDateString(undefined, {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </span>
+          </p>
+          <input
+            type="date"
+            value={selectedDate.toISOString().split('T')[0]}
+            onChange={(e) => {
+              const d = new Date(e.target.value + 'T00:00:00');
+              if (!isNaN(d.getTime())) {
+                setSelectedDate(d);
+                setViewDate(new Date(d.getFullYear(), d.getMonth(), 1));
+              }
+            }}
+            className="mt-1.5 w-full rounded border border-sidebar-border/20 bg-sidebar-accent/30 px-2 py-1 text-[11px] text-sidebar-foreground focus:outline-none focus:ring-1 focus:ring-sidebar-ring/30 [color-scheme:dark]"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
