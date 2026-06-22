@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Code2, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { TokenSource } from 'livekit-client';
 import { useSession } from '@livekit/components-react';
 import { WarningIcon } from '@phosphor-icons/react/dist/ssr';
@@ -9,7 +9,6 @@ import type { AppConfig } from '@/app-config';
 import { AgentSessionProvider } from '@/components/agents-ui/agent-session-provider';
 import { StartAudioButton } from '@/components/agents-ui/start-audio-button';
 import { Sidebar } from '@/components/app/sidebar';
-import { SidebarIde } from '@/components/app/sidebar-ide';
 import { ViewController } from '@/components/app/view-controller';
 import { Toaster } from '@/components/ui/sonner';
 import { useAgentErrors } from '@/hooks/useAgentErrors';
@@ -30,7 +29,6 @@ interface AppProps {
 
 export function App({ appConfig }: AppProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarIdeOpen, setSidebarIdeOpen] = useState(false);
   const [username, setUsername] = useState(() => {
     if (typeof window !== 'undefined') {
       return new URLSearchParams(window.location.search).get('username') || '';
@@ -100,26 +98,16 @@ export function App({ appConfig }: AppProps) {
       <StartAudioButton label="Start Audio" />
 
       {isConnected && (
-        <>
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="fixed left-3 top-3 z-50 rounded-md p-2 transition-colors hover:bg-accent md:left-6 md:top-6"
-            aria-label="Open sidebar"
-          >
-            <Menu className="size-5" />
-          </button>
-          <button
-            onClick={() => setSidebarIdeOpen(true)}
-            className="fixed right-3 top-3 z-50 rounded-md p-2 transition-colors hover:bg-accent md:right-6 md:top-6"
-            aria-label="Open IDE"
-          >
-            <Code2 className="size-5" />
-          </button>
-        </>
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="fixed left-3 top-3 z-50 rounded-md p-2 transition-colors hover:bg-accent md:left-6 md:top-6"
+          aria-label="Open sidebar"
+        >
+          <Menu className="size-5" />
+        </button>
       )}
 
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <SidebarIde open={sidebarIdeOpen} onClose={() => setSidebarIdeOpen(false)} />
 
       <Toaster
         icons={{
