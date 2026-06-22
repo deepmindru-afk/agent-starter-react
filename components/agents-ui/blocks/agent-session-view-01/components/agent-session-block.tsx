@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, type MotionProps, motion } from 'motion/react';
 import { useAgent, useSessionContext, useSessionMessages } from '@livekit/components-react';
+import { type RpcInvocationData } from 'livekit-client';
 import { AgentChatTranscript } from '@/components/agents-ui/agent-chat-transcript';
 import {
   AgentControlBar,
@@ -180,6 +181,20 @@ export function AgentSessionView_01({
   const [chatOpen, setChatOpen] = useState(false);
   const [clearedAt, setClearedAt] = useState<number>(0);
   const { state: agentState } = useAgent();
+
+  useEffect(() => {
+    const room = session.room;
+    if (!room) return;
+
+    room.registerRpcMethod('clear_chat', async (_data: RpcInvocationData) => {
+      setClearedAt(Date.now());
+      return JSON.stringify({ success: true });
+    });
+
+    return () => {
+      room.unregisterRpcMethod('clear_chat');
+    };
+  }, [session.room]);
 
   const filteredMessages = clearedAt > 0
     ? messages.filter((m) => m.timestamp > clearedAt)

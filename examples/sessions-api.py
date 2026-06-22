@@ -1,7 +1,7 @@
 import json
-from datetime import datetime, timezone
 from typing import Any
 
+from livekit import rtc
 from livekit.agents import AutoSubscribe, JobContext, WorkerOptions, cli
 
 MOCK_SESSIONS: list[dict[str, Any]] = [
@@ -26,9 +26,32 @@ MOCK_SESSIONS: list[dict[str, Any]] = [
 ]
 
 
+async def clear_chat_for_participant(participant: rtc.RemoteParticipant) -> None:
+    """Call the 'clear_chat' RPC on a connected frontend participant."""
+    try:
+        await participant.perform_rpc(
+            method="clear_chat",
+            payload="",
+            response_timeout=5.0,
+        )
+        print(f"cleared chat for {participant.identity}")
+    except Exception as e:
+        print(f"failed to clear chat for {participant.identity}: {e}")
+
+
+def find_frontend_participants(room: rtc.Room) -> list[rtc.RemoteParticipant]:
+    """Return remote participants that are likely frontend clients."""
+    return [
+        p
+        for p in room.remote_participants.values()
+        if p.kind == rtc.ParticipantKind.PARTICIPANT_KIND_STANDARD
+    ]
+
+
 async def entrypoint(ctx: JobContext) -> None:
     await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
 
+    # --- Register RPC to handle 'get_sessions' calls from the frontend ---
     async def get_sessions(data: str) -> str:
         body = json.loads(data)
         limit = body.get("limit")
@@ -38,8 +61,20 @@ async def entrypoint(ctx: JobContext) -> None:
         return json.dumps({"sessions": sessions})
 
     ctx.room.local_participant.register_rpc_method("get_sessions", get_sessions)
-
     print("agent ready — 'get_sessions' RPC method registered")
+
+    # --- Example: watch for new participants and register callbacks ---
+    @ctx.room.on("participant_connected")
+    def on_participant_connected(participant: rtc.RemoteParticipant) -> None:
+        print(f"participant connected: {participant.identity}")
+
+        # Example: clear chat for this participant after 60 seconds
+        # import asyncio
+        # asyncio.ensure_future(_delayed_clear(participant))
+
+    # async def _delayed_clear(participant: rtc.RemoteParticipant) -> None:
+    #     await asyncio.sleep(60)
+    #     await clear_chat_for_participant(participant)
 
 
 if __name__ == "__main__":
