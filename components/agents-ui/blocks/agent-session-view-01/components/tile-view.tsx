@@ -24,8 +24,8 @@ const tileViewClassNames = {
   // GRID
   // 2 Columns x 3 Rows
   grid: [
-    'h-full w-full',
-    'grid gap-x-2 place-content-center',
+    'w-full',
+    'grid gap-x-2 place-content-start',
     'grid-cols-[1fr_1fr] grid-rows-[90px_1fr_90px]',
   ],
   // Agent
@@ -33,30 +33,30 @@ const tileViewClassNames = {
   // hasSecondTile: true
   // layout: Column 1 / Row 1
   // align: x-end y-center
-  agentChatOpenWithSecondTile: ['col-start-1 row-start-1', 'self-center justify-self-end'],
+  agentChatOpenWithSecondTile: ['col-start-1 row-start-1', 'self-start justify-self-end'],
   // Agent
   // chatOpen: true,
   // hasSecondTile: false
   // layout: Column 1 / Row 1 / Column-Span 2
   // align: x-center y-center
-  agentChatOpenWithoutSecondTile: ['col-start-1 row-start-1', 'col-span-2', 'place-content-center'],
+  agentChatOpenWithoutSecondTile: ['col-start-1 row-start-1', 'col-span-2', 'place-content-start'],
   // Agent
   // chatOpen: false
   // layout: Column 1 / Row 1 / Column-Span 2 / Row-Span 3
   // align: x-center y-center
-  agentChatClosed: ['col-start-1 row-start-1', 'col-span-2 row-span-3', 'place-content-center'],
+  agentChatClosed: ['col-start-1 row-start-1', 'col-span-2 row-span-3', 'place-content-start'],
   // Second tile
   // chatOpen: true,
   // hasSecondTile: true
   // layout: Column 2 / Row 1
   // align: x-start y-center
-  secondTileChatOpen: ['col-start-2 row-start-1', 'self-center justify-self-start'],
+  secondTileChatOpen: ['col-start-2 row-start-1', 'self-start justify-self-start'],
   // Second tile
   // chatOpen: false,
   // hasSecondTile: false
   // layout: Column 2 / Row 2
   // align: x-end y-end
-  secondTileChatClosed: ['col-start-2 row-start-3', 'place-content-end'],
+  secondTileChatClosed: ['col-start-2 row-start-1', 'self-start justify-self-start'],
 };
 
 export function useLocalTrackRef(source: Track.Source) {
@@ -137,7 +137,7 @@ export function TileLayout({
   return (
     <>
     <div className="">
-      <div className="relative mx-auto h-full max-w-5xl px-4 md:px-0">
+      <div className="relative mx-auto w-full max-w-5xl px-4 md:px-0">
         <div className={cn(tileViewClassNames.grid)}>
           {/* Agent */}
           <div
