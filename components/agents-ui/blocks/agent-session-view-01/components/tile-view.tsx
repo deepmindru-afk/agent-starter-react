@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { Track } from 'livekit-client';
 import { AnimatePresence, type MotionProps, motion } from 'motion/react';
 import {
@@ -9,6 +9,7 @@ import {
   useTracks,
   useVoiceAssistant,
 } from '@livekit/components-react';
+import { X } from 'lucide-react';
 import { cn } from '@/lib/shadcn/utils';
 import { AudioVisualizer } from './audio-visualizer';
 
@@ -118,12 +119,23 @@ export function TileLayout({
       );
   }, [remoteParticipants]);
 
+  const [zoomedTrackRef, setZoomedTrackRef] = useState<TrackReference | null>(null);
+
+  const handleZoom = useCallback((trackRef: TrackReference) => {
+    setZoomedTrackRef(trackRef);
+  }, []);
+
+  const handleCloseZoom = useCallback(() => {
+    setZoomedTrackRef(null);
+  }, []);
+
   const animationDelay = chatOpen ? 0 : 0.15;
   const isAvatar = agentVideoTrack !== undefined;
   const videoWidth = agentVideoTrack?.publication.dimensions?.width ?? 0;
   const videoHeight = agentVideoTrack?.publication.dimensions?.height ?? 0;
 
   return (
+    <>
     <div className="">
       <div className="relative mx-auto h-full max-w-5xl px-4 md:px-0">
         <div className={cn(tileViewClassNames.grid)}>
@@ -215,58 +227,76 @@ export function TileLayout({
                     width={videoWidth}
                     height={videoHeight}
                     trackRef={agentVideoTrack}
-                    className={cn(chatOpen && 'size-[90px] object-cover')}
+                    onClick={() => handleZoom(agentVideoTrack)}
+                    className={cn('cursor-pointer', chatOpen && 'size-[90px] object-cover')}
                   />
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-          <div
-            className={cn([
-              'grid',
-              chatOpen && tileViewClassNames.secondTileChatOpen,
-              !chatOpen && tileViewClassNames.secondTileChatClosed,
-            ])}
-          >
-            {/* Camera & Screen Share */}
-            <AnimatePresence>
-              {((cameraTrack && isCameraEnabled) || (screenShareTrack && isScreenShareEnabled)) && (
-                <motion.div
-                  key="camera"
-                  layout="position"
-                  layoutId="camera"
-                  initial={{
-                    opacity: 0,
-                    scale: 0,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    scale: 1,
-                  }}
-                  exit={{
-                    opacity: 0,
-                    scale: 0,
-                  }}
-                  transition={{
-                    ...ANIMATION_TRANSITION,
-                    delay: animationDelay,
-                  }}
-                  className="aspect-square size-[90px] drop-shadow-lg/20"
-                >
-                  <VideoTrack
-                    trackRef={cameraTrack || screenShareTrack}
-                    width={(cameraTrack || screenShareTrack)?.publication.dimensions?.width ?? 0}
-                    height={(cameraTrack || screenShareTrack)?.publication.dimensions?.height ?? 0}
-                    className="bg-muted aspect-square size-[90px] rounded-md object-cover"
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          {!isAvatar && (
+            <div
+              className={cn([
+                'grid',
+                chatOpen && tileViewClassNames.secondTileChatOpen,
+                !chatOpen && tileViewClassNames.secondTileChatClosed,
+              ])}
+            >
+              {/* Camera & Screen Share */}
+              <AnimatePresence>
+                {((cameraTrack && isCameraEnabled) || (screenShareTrack && isScreenShareEnabled)) && (
+                  <motion.div
+                    key="camera"
+                    layout="position"
+                    layoutId="camera"
+                    initial={{
+                      opacity: 0,
+                      scale: 0,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      scale: 1,
+                    }}
+                    exit={{
+                      opacity: 0,
+                      scale: 0,
+                    }}
+                    transition={{
+                      ...ANIMATION_TRANSITION,
+                      delay: animationDelay,
+                    }}
+                    className="aspect-square size-[90px] drop-shadow-lg/20"
+                  >
+                    <VideoTrack
+                      trackRef={cameraTrack || screenShareTrack}
+                      width={(cameraTrack || screenShareTrack)?.publication.dimensions?.width ?? 0}
+                      height={(cameraTrack || screenShareTrack)?.publication.dimensions?.height ?? 0}
+                      onClick={() => handleZoom(cameraTrack || screenShareTrack!)}
+                      className="bg-muted aspect-square size-[90px] cursor-pointer rounded-md object-cover"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
         </div>
-        {remoteVideoTracks.length > 0 && (
+        {(remoteVideoTracks.length > 0 || (isAvatar && (isCameraEnabled || isScreenShareEnabled))) && (
           <div className="flex flex-wrap justify-center gap-2 pt-2">
+            {isAvatar && (isCameraEnabled || isScreenShareEnabled) && (
+              <div className="bg-muted relative aspect-square size-[90px] overflow-hidden rounded-md">
+                <VideoTrack
+                  trackRef={cameraTrack || screenShareTrack!}
+                  width={(cameraTrack || screenShareTrack)?.publication.dimensions?.width ?? 0}
+                  height={(cameraTrack || screenShareTrack)?.publication.dimensions?.height ?? 0}
+                  onClick={() => handleZoom(cameraTrack || screenShareTrack!)}
+                  className="size-full cursor-pointer object-cover"
+                />
+                <span className="absolute bottom-0 left-0 right-0 truncate bg-black/50 px-1 text-center text-xs text-white">
+                  {isCameraEnabled ? 'Camera' : 'Screen Share'}
+                </span>
+              </div>
+            )}
             {remoteVideoTracks.map((track) => (
               <div
                 key={track.participant.identity}
@@ -276,7 +306,8 @@ export function TileLayout({
                   trackRef={track}
                   width={track.publication.dimensions?.width ?? 0}
                   height={track.publication.dimensions?.height ?? 0}
-                  className="size-full object-cover"
+                  onClick={() => handleZoom(track)}
+                  className="size-full cursor-pointer object-cover"
                 />
                 <span className="absolute bottom-0 left-0 right-0 truncate bg-black/50 px-1 text-center text-xs text-white">
                   {track.participant.name || track.participant.identity}
@@ -287,5 +318,35 @@ export function TileLayout({
         )}
       </div>
     </div>
+      {zoomedTrackRef && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+          onClick={handleCloseZoom}
+        >
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className="relative max-h-[90vh] max-w-[90vw]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={handleCloseZoom}
+              className="absolute -top-10 right-0 text-white hover:text-white/70"
+              aria-label="Close zoom"
+            >
+              <X className="size-6" />
+            </button>
+            <VideoTrack
+              trackRef={zoomedTrackRef}
+              width={zoomedTrackRef.publication.dimensions?.width ?? 1280}
+              height={zoomedTrackRef.publication.dimensions?.height ?? 720}
+              className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain"
+            />
+          </motion.div>
+        </motion.div>
+      )}
+    </>
   );
 }
