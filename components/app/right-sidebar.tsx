@@ -98,8 +98,8 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
           animate={{ x: 0 }}
           transition={{ type: 'spring', damping: 28, stiffness: 220 }}
           className={cn(
-            'fixed top-0 right-0 z-50 flex h-full w-72 flex-col border-l md:w-80',
-            'bg-sidebar text-sidebar-foreground border-sidebar-border'
+            'fixed inset-0 z-50 flex h-svh w-full flex-col',
+            'bg-sidebar text-sidebar-foreground'
           )}
         >
             <div className="flex items-center gap-1 border-b border-sidebar-border bg-gradient-to-r from-sidebar to-sidebar/95 px-3 py-2">
