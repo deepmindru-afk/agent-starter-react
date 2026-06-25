@@ -39,12 +39,12 @@ const tileViewClassNames = {
   // hasSecondTile: false
   // layout: Column 1 / Row 1 / Column-Span 2
   // align: x-center y-center
-  agentChatOpenWithoutSecondTile: ['col-start-2 row-start-1', 'self-start justify-self-center'],
+  agentChatOpenWithoutSecondTile: ['col-start-2 row-start-1', 'self-center justify-self-center'],
   // Agent
   // chatOpen: false
   // layout: Column 1 / Row 1 / Column-Span 2 / Row-Span 3
   // align: x-center y-center
-  agentChatClosed: ['col-start-1 row-start-1', 'col-span-3 row-span-3', 'place-content-start'],
+  agentChatClosed: ['col-start-1 row-start-1', 'col-span-3 row-span-3', 'place-content-center'],
   // Second tile
   // chatOpen: true,
   // hasSecondTile: true
