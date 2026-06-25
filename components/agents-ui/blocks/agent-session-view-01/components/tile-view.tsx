@@ -26,37 +26,37 @@ const tileViewClassNames = {
   grid: [
     'w-full',
     'grid gap-x-2 place-content-start',
-    'grid-cols-[1fr_1fr] grid-rows-[90px_1fr_90px]',
+    'grid-cols-[1fr_auto_1fr] grid-rows-[90px_1fr_90px]',
   ],
   // Agent
   // chatOpen: true,
   // hasSecondTile: true
   // layout: Column 1 / Row 1
   // align: x-end y-center
-  agentChatOpenWithSecondTile: ['col-start-1 row-start-1', 'self-start justify-self-end'],
+  agentChatOpenWithSecondTile: ['col-start-2 row-start-1', 'self-start justify-self-center'],
   // Agent
   // chatOpen: true,
   // hasSecondTile: false
   // layout: Column 1 / Row 1 / Column-Span 2
   // align: x-center y-center
-  agentChatOpenWithoutSecondTile: ['col-start-1 row-start-1', 'col-span-2', 'place-content-start'],
+  agentChatOpenWithoutSecondTile: ['col-start-2 row-start-1', 'self-start justify-self-center'],
   // Agent
   // chatOpen: false
   // layout: Column 1 / Row 1 / Column-Span 2 / Row-Span 3
   // align: x-center y-center
-  agentChatClosed: ['col-start-1 row-start-1', 'col-span-2 row-span-3', 'place-content-start'],
+  agentChatClosed: ['col-start-1 row-start-1', 'col-span-3 row-span-3', 'place-content-start'],
   // Second tile
   // chatOpen: true,
   // hasSecondTile: true
   // layout: Column 2 / Row 1
   // align: x-start y-center
-  secondTileChatOpen: ['col-start-2 row-start-1', 'self-start justify-self-start'],
+  secondTileChatOpen: ['col-start-3 row-start-1', 'self-start justify-self-start'],
   // Second tile
   // chatOpen: false,
   // hasSecondTile: false
-  // layout: Column 2 / Row 2
-  // align: x-end y-end
-  secondTileChatClosed: ['col-start-2 row-start-1', 'self-start justify-self-start'],
+  // layout: Column 3 / Row 1
+  // align: x-start y-start
+  secondTileChatClosed: ['col-start-3 row-start-1', 'self-start justify-self-start'],
 };
 
 export function useLocalTrackRef(source: Track.Source) {
