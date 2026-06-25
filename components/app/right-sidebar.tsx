@@ -7,7 +7,7 @@ import {
   Table2,
   XIcon,
 } from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
+import { motion } from 'motion/react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -91,27 +91,17 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
   const [activeTab, setActiveTab] = useState<'chat' | 'calendar'>('chat');
 
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
-            onClick={onClose}
-          />
-          <motion.aside
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-            className={cn(
-              'fixed top-0 right-0 z-50 flex h-full w-72 flex-col border-l md:w-80',
-              'bg-sidebar text-sidebar-foreground border-sidebar-border'
-            )}
-          >
+    open && (
+      <>
+        <motion.aside
+          initial={{ x: '100%' }}
+          animate={{ x: 0 }}
+          transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+          className={cn(
+            'fixed top-0 right-0 z-50 flex h-full w-72 flex-col border-l md:w-80',
+            'bg-sidebar text-sidebar-foreground border-sidebar-border'
+          )}
+        >
             <div className="flex items-center gap-1 border-b border-sidebar-border bg-gradient-to-r from-sidebar to-sidebar/95 px-3 py-2">
               <button
                 onClick={() => setActiveTab('chat')}
@@ -184,9 +174,8 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
                 )}
               </div>
             )}
-          </motion.aside>
-        </>
-      )}
-    </AnimatePresence>
+        </motion.aside>
+      </>
+    )
   );
 }

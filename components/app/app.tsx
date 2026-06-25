@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Menu, Table2 } from 'lucide-react';
 import { TokenSource } from 'livekit-client';
 import { useSession } from '@livekit/components-react';
@@ -84,6 +84,12 @@ export function App({ appConfig }: AppProps) {
 
   const session = useSession(tokenSource);
   const isConnected = session.isConnected;
+
+  useEffect(() => {
+    if (isConnected) {
+      setRightSidebarOpen(true);
+    }
+  }, [isConnected]);
 
   return (
     <AgentSessionProvider session={session}>
