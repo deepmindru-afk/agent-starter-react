@@ -248,14 +248,15 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, onClear, className,
           className="bg-popover text-popover-foreground border-border absolute bottom-full left-0 right-0 mb-2 rounded-lg border p-1 shadow-md"
         >
           {filteredCommands.map((cmd, i) => (
-            <button
+            <Button
               key={cmd.command}
+              variant="ghost"
               role="option"
               aria-selected={i === selectedIndex}
               onClick={() => handleSelectCommand(cmd)}
               onMouseEnter={() => setSelectedIndex(i)}
               className={cn(
-                'flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition-colors',
+                'w-full justify-start gap-3 rounded-md px-3 py-2 text-left text-sm font-normal',
                 i === selectedIndex && 'bg-muted text-foreground'
               )}
             >
@@ -267,7 +268,7 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, onClear, className,
               <span className="text-muted-foreground ml-auto hidden truncate text-xs md:block">
                 {cmd.example}
               </span>
-            </button>
+            </Button>
           ))}
         </div>
       )}
@@ -275,19 +276,21 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, onClear, className,
       {chatOpen && activeCommandPrefix !== null && (
         <div className="mx-1 mb-2 flex flex-wrap gap-1.5">
           {commands.slice(0, 4).map((cmd) => (
-            <button
+            <Button
               key={cmd.command}
               type="button"
+              variant="outline"
+              size="sm"
               onClick={() => {
                 setMessage(cmd.command + ' ');
                 setShowCommands(false);
                 inputRef.current?.focus();
               }}
-              className="bg-muted hover:bg-foreground/10 border-border inline-flex cursor-pointer items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors"
+              className="gap-1 rounded-full px-2.5 py-1 text-xs font-medium"
             >
               <CommandIcon className="size-3 shrink-0 opacity-60" />
               {cmd.command}
-            </button>
+            </Button>
           ))}
         </div>
       )}
@@ -309,13 +312,15 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, onClear, className,
                   <PaperclipIcon className="size-4" />
                 </div>
               )}
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={() => handleRemoveAttachment(i)}
-                className="bg-background/80 hover:bg-background absolute top-0.5 right-0.5 flex size-5 items-center justify-center rounded-full opacity-0 transition-opacity group-hover:opacity-100"
+                className="bg-background/80 hover:bg-background absolute top-0.5 right-0.5 size-5 rounded-full opacity-0 group-hover:opacity-100"
               >
                 <XIcon className="size-3" />
-              </button>
+              </Button>
             </div>
           ))}
         </div>

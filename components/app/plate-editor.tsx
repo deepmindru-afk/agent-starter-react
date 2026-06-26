@@ -17,6 +17,7 @@ import Highlight from '@tiptap/extension-highlight';
 import StarterKit from '@tiptap/starter-kit';
 import UnderlineExtension from '@tiptap/extension-underline';
 
+import { Button } from '@/components/ui/button';
 import { Editor, EditorContainer, useEditor } from '@/components/ui/editor';
 import { cn } from '@/lib/shadcn/utils';
 
@@ -32,18 +33,20 @@ function ToolbarButton({
   tooltip?: string;
 }) {
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="icon"
       onClick={onClick}
       title={tooltip}
       className={cn(
-        'flex size-7 items-center justify-center rounded-md text-xs transition-colors',
+        'size-7 rounded-md text-xs',
         active
-          ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+          ? 'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
           : 'text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
       )}
     >
       {children}
-    </button>
+    </Button>
   );
 }
 

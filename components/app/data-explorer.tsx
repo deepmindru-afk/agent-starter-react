@@ -12,6 +12,16 @@ import {
   Search,
   Table2,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { cn } from '@/lib/shadcn/utils';
 
 interface TableInfo {
@@ -163,31 +173,33 @@ export function DataExplorer() {
       {/* Table selector */}
       <div className="flex flex-wrap gap-1">
         {tables.map((t) => (
-          <button
+          <Button
             key={t}
+            variant="ghost"
+            size="sm"
             onClick={() => handleTableChange(t)}
             className={cn(
-              'flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium transition-colors',
+              'gap-1 px-2 py-1 text-[11px] font-medium',
               activeTable === t
-                ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                ? 'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
                 : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50',
             )}
           >
             <Table2 className="size-3" />
             {t}
-          </button>
+          </Button>
         ))}
       </div>
 
       {/* Search */}
       <form onSubmit={handleSearchSubmit} className="relative">
         <Search className="pointer-events-none absolute left-2 top-1/2 size-3 -translate-y-1/2 text-sidebar-foreground/40" />
-        <input
+        <Input
           type="text"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           placeholder="Search rows..."
-          className="w-full rounded-md border border-sidebar-border/40 bg-sidebar-accent/20 py-1.5 pl-7 pr-2 text-xs text-sidebar-foreground outline-none placeholder:text-sidebar-foreground/30 focus:border-sidebar-border/60"
+          className="border-sidebar-border/40 bg-sidebar-accent/20 py-1.5 pl-7 pr-2 text-xs placeholder:text-sidebar-foreground/30"
         />
       </form>
 
@@ -209,18 +221,18 @@ export function DataExplorer() {
           </div>
           {dateColumn && (
             <div className="flex items-center gap-1">
-              <input
+              <Input
                 type="date"
                 value={dateFrom}
                 onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
-                className="w-full rounded border border-sidebar-border/30 bg-sidebar-accent/20 px-1.5 py-1 text-[10px] text-sidebar-foreground outline-none [color-scheme:dark]"
+                className="border-sidebar-border/30 bg-sidebar-accent/20 px-1.5 py-1 text-[10px] [color-scheme:dark]"
               />
               <span className="text-[10px] text-sidebar-foreground/40">→</span>
-              <input
+              <Input
                 type="date"
                 value={dateTo}
                 onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
-                className="w-full rounded border border-sidebar-border/30 bg-sidebar-accent/20 px-1.5 py-1 text-[10px] text-sidebar-foreground outline-none [color-scheme:dark]"
+                className="border-sidebar-border/30 bg-sidebar-accent/20 px-1.5 py-1 text-[10px] [color-scheme:dark]"
               />
             </div>
           )}
@@ -241,15 +253,17 @@ export function DataExplorer() {
         ) : data && data.columns.length > 0 ? (
           <div className="overflow-hidden rounded-lg border border-sidebar-border/40">
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-xs">
-                <thead>
-                  <tr className="border-b border-sidebar-border/20 bg-sidebar-accent/20">
+              <Table className="w-full text-xs">
+                <TableHeader>
+                  <TableRow className="border-b border-sidebar-border/20 bg-sidebar-accent/20 hover:bg-sidebar-accent/20">
                     {data.columns.map((col) => (
-                      <th key={col} className="px-2 py-1.5 text-left">
-                        <button
+                      <TableHead key={col} className="px-2 py-1.5">
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleSort(col)}
                           className={cn(
-                            'flex items-center gap-1 font-semibold transition-colors',
+                            'gap-1 px-0 font-semibold',
                             sort?.column === col
                               ? 'text-sidebar-foreground'
                               : 'text-sidebar-foreground/60 hover:text-sidebar-foreground',
@@ -265,17 +279,17 @@ export function DataExplorer() {
                           ) : (
                             <ArrowUpDown className="size-3 shrink-0 opacity-0 group-hover:opacity-40" />
                           )}
-                        </button>
-                      </th>
+                        </Button>
+                      </TableHead>
                     ))}
-                  </tr>
-                </thead>
-                <tbody>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {data.rows.map((row, i) => (
-                    <tr
+                    <TableRow
                       key={i}
                       className={cn(
-                        'border-b border-sidebar-border/10 transition-colors',
+                        'border-b border-sidebar-border/10',
                         i % 2 === 0 ? 'bg-sidebar-accent/10' : 'bg-transparent',
                         'hover:bg-sidebar-accent/20',
                       )}
@@ -283,7 +297,7 @@ export function DataExplorer() {
                       {data.columns.map((col) => {
                         const val = row[col];
                         return (
-                          <td
+                          <TableCell
                             key={col}
                             className={cn(
                               'max-w-[160px] truncate px-2 py-1.5',
@@ -294,13 +308,13 @@ export function DataExplorer() {
                             title={String(val ?? '')}
                           >
                             {formatCellValue(val)}
-                          </td>
+                          </TableCell>
                         );
                       })}
-                    </tr>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </div>
         ) : data ? (
@@ -318,23 +332,27 @@ export function DataExplorer() {
             {data.total} row{data.total !== 1 ? 's' : ''}
           </span>
           <div className="flex items-center gap-1">
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
-              className="rounded p-1 text-sidebar-foreground/50 transition-colors hover:text-sidebar-foreground disabled:opacity-30"
+              className="rounded p-1"
             >
               <ChevronLeft className="size-3.5" />
-            </button>
+            </Button>
             <span className="min-w-[4ch] text-center text-[10px] text-sidebar-foreground/50">
               {page}/{totalPages}
             </span>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
-              className="rounded p-1 text-sidebar-foreground/50 transition-colors hover:text-sidebar-foreground disabled:opacity-30"
+              className="rounded p-1"
             >
               <ChevronRight className="size-3.5" />
-            </button>
+            </Button>
           </div>
         </div>
       )}

@@ -31,6 +31,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { cn } from '@/lib/shadcn/utils';
 import { CalendarView } from '@/components/app/sidebar-calendar';
 
@@ -93,32 +103,32 @@ function SampleTable() {
         Project Tasks
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-xs">
-          <thead>
-            <tr className="border-b border-sidebar-border/20 bg-sidebar-accent/20">
-              <th className="px-3 py-2 text-left font-semibold text-sidebar-foreground/70">Task</th>
-              <th className="px-3 py-2 text-left font-semibold text-sidebar-foreground/70">Status</th>
-              <th className="px-3 py-2 text-left font-semibold text-sidebar-foreground/70">Priority</th>
-              <th className="px-3 py-2 text-left font-semibold text-sidebar-foreground/70">Assignee</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table className="w-full text-xs">
+          <TableHeader>
+            <TableRow className="border-b border-sidebar-border/20 bg-sidebar-accent/20 hover:bg-sidebar-accent/20">
+              <TableHead className="px-3 py-2 font-semibold text-sidebar-foreground/70">Task</TableHead>
+              <TableHead className="px-3 py-2 font-semibold text-sidebar-foreground/70">Status</TableHead>
+              <TableHead className="px-3 py-2 font-semibold text-sidebar-foreground/70">Priority</TableHead>
+              <TableHead className="px-3 py-2 font-semibold text-sidebar-foreground/70">Assignee</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {sampleTableData.map((row, i) => (
-              <tr
+              <TableRow
                 key={i}
                 className={cn(
-                  'border-b border-sidebar-border/10 transition-colors',
+                  'border-b border-sidebar-border/10',
                   i % 2 === 0 ? 'bg-sidebar-accent/10' : 'bg-transparent',
                   'hover:bg-sidebar-accent/20'
                 )}
               >
-                <td className="max-w-[140px] truncate px-3 py-2 font-medium text-sidebar-foreground">
+                <TableCell className="max-w-[140px] truncate px-3 py-2 font-medium text-sidebar-foreground">
                   {row.task}
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap text-sidebar-foreground/80">
+                </TableCell>
+                <TableCell className="px-3 py-2 whitespace-nowrap text-sidebar-foreground/80">
                   {row.status}
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap">
+                </TableCell>
+                <TableCell className="px-3 py-2 whitespace-nowrap">
                   <span
                     className={cn(
                       'rounded-full px-1.5 py-0.5 text-[10px] font-semibold',
@@ -129,12 +139,12 @@ function SampleTable() {
                   >
                     {row.priority}
                   </span>
-                </td>
-                <td className="px-3 py-2 text-sidebar-foreground/60">{row.assignee}</td>
-              </tr>
+                </TableCell>
+                <TableCell className="px-3 py-2 text-sidebar-foreground/60">{row.assignee}</TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
@@ -307,38 +317,44 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             )}
           >
             <div className="flex items-center gap-1 border-b border-sidebar-border bg-gradient-to-r from-sidebar to-sidebar/95 px-3 py-2">
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setActiveTab('chat')}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors',
+                  'gap-1.5 px-2.5 py-1.5 text-xs font-medium',
                   activeTab === 'chat'
-                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
                     : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
                 )}
               >
                 <MessageSquareTextIcon className="size-3.5" />
                 Chat
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setActiveTab('calendar')}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors',
+                  'gap-1.5 px-2.5 py-1.5 text-xs font-medium',
                   activeTab === 'calendar'
-                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
                     : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
                 )}
               >
                 <CalendarDays className="size-3.5" />
                 Calendar
-              </button>
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button
-                    className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md p-1.5 transition-colors"
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     aria-label="Sidebar menu"
+                    className="rounded-md p-1.5"
                   >
                     <MoreVertical className="size-4" />
-                  </button>
+                  </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" sideOffset={6}>
                   <DropdownMenuItem onClick={() => setShowSampleTable((v) => !v)}>
@@ -353,12 +369,14 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={onClose}
-                className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md p-1.5 transition-colors"
+                className="rounded-md p-1.5"
               >
                 <XIcon className="size-4" />
-              </button>
+              </Button>
             </div>
 
             {activeTab === 'calendar' && (
@@ -369,36 +387,40 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
             {activeTab === 'chat' && (<>
             <div className="border-b border-sidebar-border/50 px-4 py-2.5">
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setShowApiKey(!showApiKey)}
-                className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase transition-colors hover:text-sidebar-foreground/70"
+                className="mb-1.5 gap-1.5 px-0 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase hover:text-sidebar-foreground/70"
               >
                 <KeyRound className="size-3" />
                 API Key
-              </button>
+              </Button>
               {showApiKey && (
-                <input
+                <Input
                   type="password"
                   value={apiKey}
                   onChange={(e) => handleApiKeyChange(e.target.value)}
                   placeholder="sk-..."
-                  className="w-full rounded-md border border-sidebar-border/30 bg-sidebar-accent/20 py-1.5 px-2.5 text-xs text-sidebar-foreground placeholder:text-sidebar-foreground/30 focus:border-sidebar-ring/50 focus:outline-none focus:ring-1 focus:ring-sidebar-ring/30 transition-all"
+                  className="border-sidebar-border/30 bg-sidebar-accent/20 py-1.5 px-2.5 text-xs placeholder:text-sidebar-foreground/30"
                 />
               )}
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setShowApiEndpoint(!showApiEndpoint)}
-                className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase transition-colors hover:text-sidebar-foreground/70"
+                className="mt-2 gap-1.5 px-0 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase hover:text-sidebar-foreground/70"
               >
                 <Link className="size-3" />
                 API Endpoint
-              </button>
+              </Button>
               {showApiEndpoint && (
-                <input
+                <Input
                   type="text"
                   value={apiEndpoint}
                   onChange={(e) => handleEndpointChange(e.target.value)}
                   placeholder="https://lm.portalos.ru/v1/models"
-                  className="mt-1 w-full rounded-md border border-sidebar-border/30 bg-sidebar-accent/20 py-1.5 px-2.5 text-xs text-sidebar-foreground placeholder:text-sidebar-foreground/30 focus:border-sidebar-ring/50 focus:outline-none focus:ring-1 focus:ring-sidebar-ring/30 transition-all"
+                  className="mt-1 border-sidebar-border/30 bg-sidebar-accent/20 py-1.5 px-2.5 text-xs placeholder:text-sidebar-foreground/30"
                 />
               )}
             </div>
@@ -436,12 +458,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             <div className="border-b border-sidebar-border/50 px-4 py-2.5">
               <div className="relative">
                 <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-sidebar-foreground/30" />
-                <input
+                <Input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search conversations..."
-                  className="w-full rounded-md border border-sidebar-border/30 bg-sidebar-accent/20 py-1.5 pr-2.5 pl-8 text-xs text-sidebar-foreground placeholder:text-sidebar-foreground/30 focus:border-sidebar-ring/50 focus:outline-none focus:ring-1 focus:ring-sidebar-ring/30 transition-all"
+                  className="border-sidebar-border/30 bg-sidebar-accent/20 py-1.5 pr-2.5 pl-8 text-xs placeholder:text-sidebar-foreground/30"
                 />
               </div>
             </div>

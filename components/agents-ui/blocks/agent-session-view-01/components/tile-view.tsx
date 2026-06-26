@@ -10,6 +10,7 @@ import {
   useVoiceAssistant,
 } from '@livekit/components-react';
 import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/shadcn/utils';
 import { AudioVisualizer } from './audio-visualizer';
 
@@ -331,13 +332,15 @@ export function TileLayout({
             className="relative max-h-[90vh] max-w-[90vw]"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={handleCloseZoom}
               className="absolute -top-10 right-0 text-white hover:text-white/70"
               aria-label="Close zoom"
             >
               <X className="size-6" />
-            </button>
+            </Button>
             <VideoTrack
               trackRef={zoomedTrackRef}
               width={zoomedTrackRef.publication.dimensions?.width ?? 1280}

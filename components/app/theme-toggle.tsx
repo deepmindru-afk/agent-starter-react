@@ -2,6 +2,7 @@
 
 import { useTheme } from 'next-themes';
 import { MonitorIcon, MoonIcon, SunIcon } from '@phosphor-icons/react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/shadcn/utils';
 
 interface ThemeToggleProps {
@@ -19,7 +20,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       )}
     >
       <span className="sr-only">Color scheme toggle</span>
-      <button type="button" onClick={() => setTheme('dark')} className="cursor-pointer p-1 pl-1.5">
+      <Button type="button" variant="ghost" size="icon" onClick={() => setTheme('dark')} className="rounded-none p-1 pl-1.5">
         <span className="sr-only">Enable dark color scheme</span>
         <MoonIcon
           suppressHydrationWarning
@@ -27,11 +28,13 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
           weight="bold"
           className={cn(theme !== 'dark' && 'opacity-25')}
         />
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
+        variant="ghost"
+        size="icon"
         onClick={() => setTheme('light')}
-        className="cursor-pointer px-1.5 py-1"
+        className="rounded-none px-1.5 py-1"
       >
         <span className="sr-only">Enable light color scheme</span>
         <SunIcon
@@ -40,11 +43,13 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
           weight="bold"
           className={cn(theme !== 'light' && 'opacity-25')}
         />
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
+        variant="ghost"
+        size="icon"
         onClick={() => setTheme('system')}
-        className="cursor-pointer p-1 pr-1.5"
+        className="rounded-none p-1 pr-1.5"
       >
         <span className="sr-only">Enable system color scheme</span>
         <MonitorIcon
@@ -53,7 +58,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
           weight="bold"
           className={cn(theme !== 'system' && 'opacity-25')}
         />
-      </button>
+      </Button>
     </div>
   );
 }

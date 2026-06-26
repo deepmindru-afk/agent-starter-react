@@ -11,6 +11,7 @@ import { StartAudioButton } from '@/components/agents-ui/start-audio-button';
 import { Sidebar } from '@/components/app/sidebar';
 import { RightSidebar } from '@/components/app/right-sidebar';
 import { ViewController } from '@/components/app/view-controller';
+import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/sonner';
 import { useAgentErrors } from '@/hooks/useAgentErrors';
 import { useDebugMode } from '@/hooks/useDebug';
@@ -101,20 +102,24 @@ export function App({ appConfig }: AppProps) {
 
       {isConnected && (
         <>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setSidebarOpen(true)}
-            className="fixed left-3 top-3 z-50 rounded-md p-2 transition-colors hover:bg-accent md:left-6 md:top-6"
+            className="fixed left-3 top-3 z-50 md:left-6 md:top-6"
             aria-label="Open sidebar"
           >
             <Menu className="size-5" />
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setRightSidebarOpen(true)}
-            className="fixed right-3 top-3 z-50 rounded-md p-2 transition-colors hover:bg-accent md:right-6 md:top-6"
+            className="fixed right-3 top-3 z-50 md:right-6 md:top-6"
             aria-label="Open right sidebar"
           >
             <Table2 className="size-5" />
-          </button>
+          </Button>
         </>
       )}
 

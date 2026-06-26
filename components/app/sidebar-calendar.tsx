@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/shadcn/utils';
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -69,27 +71,33 @@ export function CalendarView() {
       <div className="mb-1 flex items-center justify-between px-1">
         <span className="text-xs font-semibold text-sidebar-foreground/70">{monthLabel}</span>
         <div className="flex items-center gap-0.5">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={prevMonth}
-            className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md p-1 transition-colors"
+            className="rounded-md p-1"
             aria-label="Previous month"
           >
             <ChevronLeft className="size-3.5" />
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setViewDate(new Date(today.getFullYear(), today.getMonth(), 1))}
-            className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md px-1.5 py-1 text-[10px] font-medium transition-colors"
+            className="rounded-md px-1.5 py-1 text-[10px] font-medium"
             aria-label="Today"
           >
             Today
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={nextMonth}
-            className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md p-1 transition-colors"
+            className="rounded-md p-1"
             aria-label="Next month"
           >
             <ChevronRight className="size-3.5" />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -104,22 +112,24 @@ export function CalendarView() {
         ))}
         {weeks.map((week, wi) =>
           week.map((day, di) => (
-            <button
+            <Button
               key={`${wi}-${di}`}
+              variant="ghost"
+              size="icon"
               disabled={day === null}
               onClick={() => day && setSelectedDate(new Date(year, month, day))}
               className={cn(
-                'relative mx-auto flex size-7 items-center justify-center rounded-full text-[11px] transition-all',
+                'mx-auto size-7 rounded-full text-[11px]',
                 day === null && 'pointer-events-none opacity-0',
                 !isSelected(day ?? 0) && 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                isSelected(day ?? 0) && 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold',
+                isSelected(day ?? 0) && 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold hover:bg-sidebar-accent',
                 isToday(day ?? 0) &&
                   !isSelected(day ?? 0) &&
                   'ring-1 ring-sidebar-foreground/30'
               )}
             >
               {day}
-            </button>
+            </Button>
           ))
         )}
       </div>
@@ -136,7 +146,7 @@ export function CalendarView() {
               })}
             </span>
           </p>
-          <input
+          <Input
             type="date"
             value={selectedDate.toISOString().split('T')[0]}
             onChange={(e) => {
@@ -146,7 +156,7 @@ export function CalendarView() {
                 setViewDate(new Date(d.getFullYear(), d.getMonth(), 1));
               }
             }}
-            className="mt-1.5 w-full rounded border border-sidebar-border/20 bg-sidebar-accent/30 px-2 py-1 text-[11px] text-sidebar-foreground focus:outline-none focus:ring-1 focus:ring-sidebar-ring/30 [color-scheme:dark]"
+            className="mt-1.5 border-sidebar-border/20 bg-sidebar-accent/30 px-2 py-1 text-[11px] [color-scheme:dark]"
           />
         </div>
       )}

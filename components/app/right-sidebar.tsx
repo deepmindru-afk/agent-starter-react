@@ -9,6 +9,7 @@ import {
   XIcon,
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/shadcn/utils';
 import { CalendarView } from '@/components/app/sidebar-calendar';
 import { DataExplorer } from '@/components/app/data-explorer';
@@ -35,10 +36,12 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
           )}
         >
             <div className="flex items-center gap-1 border-b border-sidebar-border bg-gradient-to-r from-sidebar to-sidebar/95 px-3 py-2">
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setActiveTab('chat')}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors',
+                  'gap-1.5 px-2.5 py-1.5 text-xs font-medium',
                   activeTab === 'chat'
                     ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                     : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
@@ -46,11 +49,13 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
               >
                 <MessageSquareTextIcon className="size-3.5" />
                 Samples
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setActiveTab('calendar')}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors',
+                  'gap-1.5 px-2.5 py-1.5 text-xs font-medium',
                   activeTab === 'calendar'
                     ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                     : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
@@ -58,11 +63,13 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
               >
                 <CalendarDays className="size-3.5" />
                 Calendar
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setActiveTab('dashboard')}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors',
+                  'gap-1.5 px-2.5 py-1.5 text-xs font-medium',
                   activeTab === 'dashboard'
                     ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                     : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
@@ -70,11 +77,13 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
               >
                 <LayoutDashboard className="size-3.5" />
                 Dashboard
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setActiveTab('editor')}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors',
+                  'gap-1.5 px-2.5 py-1.5 text-xs font-medium',
                   activeTab === 'editor'
                     ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                     : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
@@ -82,13 +91,15 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
               >
                 <FileText className="size-3.5" />
                 Editor
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={onClose}
-                className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md p-1.5 transition-colors"
+                className="rounded-md p-1.5"
               >
                 <XIcon className="size-4" />
-              </button>
+              </Button>
             </div>
 
             {activeTab === 'calendar' && (
