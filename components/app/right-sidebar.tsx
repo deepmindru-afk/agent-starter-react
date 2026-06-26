@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import {
   CalendarDays,
+  LayoutDashboard,
   MessageSquareTextIcon,
   Table2,
   XIcon,
@@ -88,7 +89,7 @@ interface RightSidebarProps {
 
 export function RightSidebar({ open, onClose }: RightSidebarProps) {
   const [showSampleTable, setShowSampleTable] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'calendar'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'calendar' | 'dashboard'>('chat');
 
   return (
     open && (
@@ -127,6 +128,18 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
                 <CalendarDays className="size-3.5" />
                 Calendar
               </button>
+              <button
+                onClick={() => setActiveTab('dashboard')}
+                className={cn(
+                  'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors',
+                  activeTab === 'dashboard'
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                    : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
+                )}
+              >
+                <LayoutDashboard className="size-3.5" />
+                Dashboard
+              </button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
@@ -156,6 +169,14 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
               <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth p-3 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-sidebar-border/30 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
                 <CalendarView />
               </div>
+            )}
+
+            {activeTab === 'dashboard' && (
+              <iframe
+                src="https://portalos.ru"
+                className="flex-1 w-full border-0"
+                title="Dashboard"
+              />
             )}
 
             {activeTab === 'chat' && (
