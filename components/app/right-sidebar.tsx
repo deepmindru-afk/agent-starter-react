@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import {
   CalendarDays,
+  FileText,
   LayoutDashboard,
   MessageSquareTextIcon,
   XIcon,
@@ -11,6 +12,7 @@ import { motion } from 'motion/react';
 import { cn } from '@/lib/shadcn/utils';
 import { CalendarView } from '@/components/app/sidebar-calendar';
 import { DataExplorer } from '@/components/app/data-explorer';
+import { PlateEditor } from '@/components/app/plate-editor';
 
 interface RightSidebarProps {
   open: boolean;
@@ -18,7 +20,7 @@ interface RightSidebarProps {
 }
 
 export function RightSidebar({ open, onClose }: RightSidebarProps) {
-  const [activeTab, setActiveTab] = useState<'chat' | 'calendar' | 'dashboard'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'calendar' | 'dashboard' | 'editor'>('chat');
 
   return (
     open && (
@@ -70,6 +72,18 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
                 Dashboard
               </button>
               <button
+                onClick={() => setActiveTab('editor')}
+                className={cn(
+                  'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors',
+                  activeTab === 'editor'
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                    : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
+                )}
+              >
+                <FileText className="size-3.5" />
+                Editor
+              </button>
+              <button
                 onClick={onClose}
                 className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md p-1.5 transition-colors"
               >
@@ -89,6 +103,12 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
                 className="flex-1 w-full border-0"
                 title="Dashboard"
               />
+            )}
+
+            {activeTab === 'editor' && (
+              <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth p-3 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-sidebar-border/30 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
+                <PlateEditor />
+              </div>
             )}
 
             {activeTab === 'chat' && (
