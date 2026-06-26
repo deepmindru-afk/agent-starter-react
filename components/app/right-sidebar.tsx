@@ -173,7 +173,7 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
 
             {activeTab === 'dashboard' && (
               <iframe
-                src="https://portalos.ru"
+                src={process.env.NEXT_PUBLIC_DASHBOARD_URL || 'https://portalos.ru'}
                 className="flex-1 w-full border-0"
                 title="Dashboard"
               />
