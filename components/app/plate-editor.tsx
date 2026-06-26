@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import {
   Bold,
   Code,
@@ -13,28 +13,11 @@ import {
   Underline,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import {
-  BasicMarksPlugin,
-  BlockquotePlugin,
-  BoldPlugin,
-  CodePlugin,
-  H1Plugin,
-  H2Plugin,
-  H3Plugin,
-  HeadingPlugin,
-  HighlightPlugin,
-  HorizontalRulePlugin,
-  ItalicPlugin,
-  StrikethroughPlugin,
-  UnderlinePlugin,
-} from '@platejs/basic-nodes/react';
-import {
-  Plate,
-  ParagraphPlugin,
-  usePlateEditor,
-} from 'platejs/react';
+import Highlight from '@tiptap/extension-highlight';
+import StarterKit from '@tiptap/starter-kit';
+import UnderlineExtension from '@tiptap/extension-underline';
 
-import { Editor, EditorContainer } from '@/components/ui/editor';
+import { Editor, EditorContainer, useEditor } from '@/components/ui/editor';
 import { cn } from '@/lib/shadcn/utils';
 
 function ToolbarButton({
@@ -68,32 +51,30 @@ export function PlateEditor() {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
 
-  const [key, setKey] = useState(0);
-
-  const editor = usePlateEditor({
-    plugins: [
-      ParagraphPlugin,
-      BoldPlugin,
-      ItalicPlugin,
-      UnderlinePlugin,
-      StrikethroughPlugin,
-      CodePlugin,
-      HighlightPlugin,
-      HeadingPlugin.configure({ options: { levels: [1, 2, 3] } }),
-      H1Plugin,
-      H2Plugin,
-      H3Plugin,
-      BlockquotePlugin,
-      HorizontalRulePlugin,
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: {
+          levels: [1, 2, 3],
+        },
+      }),
+      UnderlineExtension,
+      Highlight,
     ],
+    editorProps: {
+      attributes: {
+        class: 'size-full px-3 py-3 text-sm outline-none',
+      },
+    },
   });
 
   const handleReset = useCallback(() => {
-    editor.tf.setValue([
-      { children: [{ text: '' }], type: 'p' },
-    ]);
-    setKey((k) => k + 1);
-  }, [editor.tf]);
+    editor?.commands.clearContent();
+  }, [editor]);
+
+  if (!editor) {
+    return null;
+  }
 
   return (
     <div
@@ -110,37 +91,73 @@ export function PlateEditor() {
           isDark ? 'border-sidebar-border/20 bg-sidebar-accent/15' : 'border-sidebar-border/20 bg-sidebar-accent/10',
         )}
       >
-        <ToolbarButton onClick={() => editor.tf.toggle({ key: 'bold' })} tooltip="Bold">
+        <ToolbarButton
+          active={editor.isActive('bold')}
+          onClick={() => editor.chain().focus().toggleBold().run()}
+          tooltip="Bold"
+        >
           <Bold className="size-3.5" />
         </ToolbarButton>
-        <ToolbarButton onClick={() => editor.tf.toggle({ key: 'italic' })} tooltip="Italic">
+        <ToolbarButton
+          active={editor.isActive('italic')}
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+          tooltip="Italic"
+        >
           <Italic className="size-3.5" />
         </ToolbarButton>
-        <ToolbarButton onClick={() => editor.tf.toggle({ key: 'underline' })} tooltip="Underline">
+        <ToolbarButton
+          active={editor.isActive('underline')}
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          tooltip="Underline"
+        >
           <Underline className="size-3.5" />
         </ToolbarButton>
-        <ToolbarButton onClick={() => editor.tf.toggle({ key: 'strikethrough' })} tooltip="Strikethrough">
+        <ToolbarButton
+          active={editor.isActive('strike')}
+          onClick={() => editor.chain().focus().toggleStrike().run()}
+          tooltip="Strikethrough"
+        >
           <Strikethrough className="size-3.5" />
         </ToolbarButton>
-        <ToolbarButton onClick={() => editor.tf.toggle({ key: 'code' })} tooltip="Code">
+        <ToolbarButton
+          active={editor.isActive('code')}
+          onClick={() => editor.chain().focus().toggleCode().run()}
+          tooltip="Code"
+        >
           <Code className="size-3.5" />
         </ToolbarButton>
 
         <span className="mx-1 h-4 w-px bg-sidebar-border/30" />
 
-        <ToolbarButton onClick={() => editor.tf.toggle({ key: 'h1' })} tooltip="Heading 1">
+        <ToolbarButton
+          active={editor.isActive('heading', { level: 1 })}
+          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+          tooltip="Heading 1"
+        >
           <Heading1 className="size-3.5" />
         </ToolbarButton>
-        <ToolbarButton onClick={() => editor.tf.toggle({ key: 'h2' })} tooltip="Heading 2">
+        <ToolbarButton
+          active={editor.isActive('heading', { level: 2 })}
+          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          tooltip="Heading 2"
+        >
           <Heading2 className="size-3.5" />
         </ToolbarButton>
-        <ToolbarButton onClick={() => editor.tf.toggle({ key: 'h3' })} tooltip="Heading 3">
+        <ToolbarButton
+          active={editor.isActive('heading', { level: 3 })}
+          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          tooltip="Heading 3"
+        >
           <Heading3 className="size-3.5" />
         </ToolbarButton>
 
         <span className="mx-1 h-4 w-px bg-sidebar-border/30" />
 
-        <ToolbarButton onClick={() => editor.tf.toggle({ key: 'blockquote' })} tooltip="Blockquote">
+        <ToolbarButton
+          active={editor.isActive('blockquote')}
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          tooltip="Blockquote"
+        >
           <Quote className="size-3.5" />
         </ToolbarButton>
 
@@ -159,7 +176,7 @@ export function PlateEditor() {
         )}
       >
         <Editor
-          key={key}
+          editor={editor}
           placeholder="Start typing..."
           className={cn(
             'size-full px-3 py-3 text-sm',

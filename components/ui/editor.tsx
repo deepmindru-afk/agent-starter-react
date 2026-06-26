@@ -3,15 +3,15 @@
 import * as React from 'react';
 
 import type { VariantProps } from 'class-variance-authority';
-import type { PlateContentProps, PlateViewProps } from 'platejs/react';
+import type { Editor as TiptapEditor } from '@tiptap/react';
 
 import { cva } from 'class-variance-authority';
-import { PlateContainer, PlateContent, PlateView } from 'platejs/react';
+import { EditorContent } from '@tiptap/react';
 
 import { cn } from '@/lib/shadcn/utils';
 
 const editorContainerVariants = cva(
-  'relative w-full cursor-text select-text overflow-y-auto caret-primary selection:bg-brand/25 focus-visible:outline-none [&_.slate-selection-area]:z-50 [&_.slate-selection-area]:border [&_.slate-selection-area]:border-brand/25 [&_.slate-selection-area]:bg-brand/15',
+  'relative w-full cursor-text select-text overflow-y-auto caret-primary selection:bg-brand/25 focus-visible:outline-none',
   {
     defaultVariants: {
       variant: 'default',
@@ -21,7 +21,7 @@ const editorContainerVariants = cva(
         comment: cn(
           'flex flex-wrap justify-between gap-1 px-1 py-0.5 text-sm',
           'rounded-md border-[1.5px] border-transparent bg-transparent',
-          'has-[[data-slate-editor]:focus]:border-brand/50 has-[[data-slate-editor]:focus]:ring-2 has-[[data-slate-editor]:focus]:ring-brand/30',
+          'has-[.ProseMirror-focused]:border-brand/50 has-[.ProseMirror-focused]:ring-2 has-[.ProseMirror-focused]:ring-brand/30',
           'has-aria-disabled:border-input has-aria-disabled:bg-muted'
         ),
         default: 'h-full',
@@ -41,7 +41,7 @@ export function EditorContainer({
   ...props
 }: React.ComponentProps<'div'> & VariantProps<typeof editorContainerVariants>) {
   return (
-    <PlateContainer
+    <div
       className={cn(
         'ignore-click-outside/toolbar',
         editorContainerVariants({ variant }),
@@ -57,7 +57,7 @@ const editorVariants = cva(
     'group/editor',
     'relative w-full cursor-text select-text overflow-x-hidden whitespace-break-spaces break-words',
     'rounded-md ring-offset-background focus-visible:outline-none',
-    '**:data-slate-placeholder:!top-1/2 **:data-slate-placeholder:-translate-y-1/2 placeholder:text-muted-foreground/80 **:data-slate-placeholder:text-muted-foreground/80 **:data-slate-placeholder:opacity-100!',
+    'placeholder:text-muted-foreground/80',
     '[&_strong]:font-bold'
   ),
   {
@@ -87,19 +87,24 @@ const editorVariants = cva(
   }
 );
 
-export type EditorProps = PlateContentProps &
-  VariantProps<typeof editorVariants>;
+export type EditorProps = {
+  editor: TiptapEditor | null;
+  disabled?: boolean;
+  focused?: boolean;
+  variant?: VariantProps<typeof editorVariants>['variant'];
+} & React.ComponentProps<'div'>;
 
 export const Editor = ({
+  editor,
   className,
   disabled,
   focused,
   variant,
-  ref,
   ...props
-}: EditorProps & { ref?: React.RefObject<HTMLDivElement | null> }) => (
-  <PlateContent
-    ref={ref}
+}: EditorProps) => (
+  <EditorContent
+    editor={editor}
+    disabled={disabled}
     className={cn(
       editorVariants({
         disabled,
@@ -108,8 +113,6 @@ export const Editor = ({
       }),
       className
     )}
-    disabled={disabled}
-    disableDefaultStyles
     {...props}
   />
 );
@@ -119,14 +122,22 @@ Editor.displayName = 'Editor';
 export function EditorView({
   className,
   variant,
+  editor,
   ...props
-}: PlateViewProps & VariantProps<typeof editorVariants>) {
+}: {
+  editor: TiptapEditor | null;
+  className?: string;
+  variant?: VariantProps<typeof editorVariants>['variant'];
+}) {
   return (
-    <PlateView
-      {...props}
+    <EditorContent
+      editor={editor}
       className={cn(editorVariants({ variant }), className)}
+      {...props}
     />
   );
 }
 
 EditorView.displayName = 'EditorView';
+
+export { useEditor } from '@tiptap/react';

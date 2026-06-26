@@ -1,9 +1,13 @@
 import * as React from 'react';
 
 import type { VariantProps } from 'class-variance-authority';
+import type { JSONContent } from '@tiptap/react';
 
 import { cva } from 'class-variance-authority';
-import { type PlateStaticProps, PlateStatic } from 'platejs/static';
+import { generateHTML } from '@tiptap/react';
+import Highlight from '@tiptap/extension-highlight';
+import StarterKit from '@tiptap/starter-kit';
+import UnderlineExtension from '@tiptap/extension-underline';
 
 import { cn } from '@/lib/shadcn/utils';
 
@@ -12,7 +16,7 @@ export const editorVariants = cva(
     'group/editor',
     'relative w-full cursor-text select-text overflow-x-hidden whitespace-break-spaces break-words',
     'rounded-md ring-offset-background focus-visible:outline-none',
-    'placeholder:text-muted-foreground/80 **:data-slate-placeholder:top-[auto_!important] **:data-slate-placeholder:text-muted-foreground/80 **:data-slate-placeholder:opacity-100!',
+    'placeholder:text-muted-foreground/80',
     '[&_strong]:font-bold'
   ),
   {
@@ -44,11 +48,31 @@ export const editorVariants = cva(
 export function EditorStatic({
   className,
   variant,
+  content,
   ...props
-}: PlateStaticProps & VariantProps<typeof editorVariants>) {
+}: {
+  content: JSONContent;
+  className?: string;
+  variant?: VariantProps<typeof editorVariants>['variant'];
+}) {
+  const html = React.useMemo(
+    () =>
+      generateHTML(content, [
+        StarterKit.configure({
+          heading: {
+            levels: [1, 2, 3],
+          },
+        }),
+        UnderlineExtension,
+        Highlight,
+      ]),
+    [content],
+  );
+
   return (
-    <PlateStatic
+    <div
       className={cn(editorVariants({ variant }), className)}
+      dangerouslySetInnerHTML={{ __html: html }}
       {...props}
     />
   );
