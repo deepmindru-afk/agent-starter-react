@@ -31,7 +31,7 @@ const LK_TOGGLE_VARIANT_1 = [
   'dark:data-[state=off]:[&_~_button]:bg-accent dark:data-[state=off]:[&_~_button]:hover:bg-foreground/10',
 ];
 
-interface Command {
+export interface Command {
   command: string;
   description: string;
   example: string;
@@ -115,10 +115,12 @@ interface AgentChatInputProps {
   onSend?: (message: string, files?: File[]) => void;
   onClear?: () => void;
   className?: string;
+  commands?: Command[];
 }
 
-function AgentChatInput({ chatOpen, onSend = async () => {}, onClear, className }: AgentChatInputProps) {
-  const commands = useCommands();
+function AgentChatInput({ chatOpen, onSend = async () => {}, onClear, className, commands: externalCommands }: AgentChatInputProps) {
+  const defaultCommands = useCommands();
+  const commands = externalCommands ?? defaultCommands;
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -448,6 +450,11 @@ export interface AgentControlBarProps extends UseInputControlsProps {
   onDeviceError?: (error: { source: Track.Source; error: Error }) => void;
   /** The callback for when the chat transcript should be cleared. */
   onClear?: () => void;
+  /**
+   * Optional commands to override the default command list.
+   * If not provided, commands are fetched from the API.
+   */
+  commands?: Command[];
 }
 
 /**
@@ -485,6 +492,7 @@ export function AgentControlBar({
   onIsChatOpenChange,
   onClear,
   className,
+  commands,
   ...props
 }: AgentControlBarProps & ComponentProps<'div'>) {
   const { send } = useChat();
@@ -554,6 +562,7 @@ export function AgentControlBar({
           chatOpen={isChatOpen || isChatOpenUncontrolled}
           onSend={handleSendMessage}
           onClear={onClear}
+          commands={commands}
           className={cn(variant === 'livekit' && '[&_button]:rounded-full')}
         />
       </motion.div>

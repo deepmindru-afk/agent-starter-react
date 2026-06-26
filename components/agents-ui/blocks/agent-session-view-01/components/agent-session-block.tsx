@@ -8,6 +8,7 @@ import { AgentChatTranscript } from '@/components/agents-ui/agent-chat-transcrip
 import {
   AgentControlBar,
   type AgentControlBarControls,
+  type Command,
 } from '@/components/agents-ui/agent-control-bar';
 import { Shimmer } from '@/components/ai-elements/shimmer';
 import { cn } from '@/lib/shadcn/utils';
@@ -180,6 +181,7 @@ export function AgentSessionView_01({
   const { messages } = useSessionMessages(session);
   const [chatOpen, setChatOpen] = useState(false);
   const [clearedAt, setClearedAt] = useState<number>(0);
+  const [rpcCommands, setRpcCommands] = useState<Command[] | undefined>(undefined);
   const { state: agentState } = useAgent();
 
   useEffect(() => {
@@ -191,8 +193,17 @@ export function AgentSessionView_01({
       return JSON.stringify({ success: true });
     });
 
+    room.registerRpcMethod('update_commands', async (data: RpcInvocationData) => {
+      const payload = JSON.parse(data.payload) as { commands: Command[] };
+      if (Array.isArray(payload.commands)) {
+        setRpcCommands(payload.commands);
+      }
+      return JSON.stringify({ success: true });
+    });
+
     return () => {
       room.unregisterRpcMethod('clear_chat');
+      room.unregisterRpcMethod('update_commands');
     };
   }, [session.room]);
 
@@ -282,6 +293,7 @@ export function AgentSessionView_01({
             onDisconnect={session.end}
             onIsChatOpenChange={setChatOpen}
             onClear={handleClear}
+            commands={rpcCommands}
           />
         </div>
       </motion.div>

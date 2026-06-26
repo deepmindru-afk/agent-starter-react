@@ -72,9 +72,31 @@ async def entrypoint(ctx: JobContext) -> None:
         # import asyncio
         # asyncio.ensure_future(_delayed_clear(participant))
 
+        # Example: send custom commands to this participant via RPC
+        # asyncio.ensure_future(_send_commands(participant))
+
     # async def _delayed_clear(participant: rtc.RemoteParticipant) -> None:
     #     await asyncio.sleep(60)
     #     await clear_chat_for_participant(participant)
+
+    # async def _send_commands(participant: rtc.RemoteParticipant) -> None:
+    #     """Call the 'update_commands' RPC to replace the frontend's command list."""
+    #     custom_commands = [
+    #         {"command": "/help", "description": "Show available commands", "example": "/help"},
+    #         {"command": "/docs", "description": "Open documentation", "example": "/docs"},
+    #         {"command": "/status", "description": "Check system status", "example": "/status"},
+    #         {"command": "/feedback", "description": "Send feedback", "example": "/feedback great work"},
+    #         {"command": "/reset", "description": "Reset the conversation", "example": "/reset"},
+    #     ]
+    #     try:
+    #         await participant.perform_rpc(
+    #             method="update_commands",
+    #             payload=json.dumps({"commands": custom_commands}),
+    #             response_timeout=5.0,
+    #         )
+    #         print(f"sent commands to {participant.identity}")
+    #     except Exception as e:
+    #         print(f"failed to send commands to {participant.identity}: {e}")
 
 
 if __name__ == "__main__":
