@@ -1,7 +1,17 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, Database, Search, Table2, Loader2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ArrowDownWideNarrow,
+  ArrowUpDown,
+  ArrowUpNarrowWide,
+  ChevronLeft,
+  ChevronRight,
+  Database,
+  Loader2,
+  Search,
+  Table2,
+} from 'lucide-react';
 import { cn } from '@/lib/shadcn/utils';
 
 interface TableInfo {
@@ -12,12 +22,24 @@ interface TableInfo {
 interface TableData {
   source: 'sample' | 'live';
   columns: string[];
+  types?: Record<string, string>;
   rows: Record<string, unknown>[];
   total: number;
   table: string;
 }
 
+interface SortState {
+  column: string;
+  dir: 'asc' | 'desc';
+}
+
 const PAGE_SIZE = 15;
+
+function isDateColumn(col: string, types?: Record<string, string>): boolean {
+  if (types?.[col] === 'datetime' || types?.[col] === 'date' || types?.[col] === 'timestamp') return true;
+  const lower = col.toLowerCase();
+  return lower.includes('date') || lower.includes('_at') || lower === 'timestamp';
+}
 
 export function DataExplorer() {
   const [tables, setTables] = useState<string[]>([]);
@@ -29,6 +51,16 @@ export function DataExplorer() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<'sample' | 'live'>('sample');
+  const [sort, setSort] = useState<SortState | null>(null);
+  const [dateColumn, setDateColumn] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  // Detect available date columns from current data
+  const dateColumns = useMemo(() => {
+    if (!data?.columns) return [];
+    return data.columns.filter((col) => isDateColumn(col, data.types));
+  }, [data]);
 
   // Fetch table list on mount
   useEffect(() => {
@@ -37,9 +69,7 @@ export function DataExplorer() {
       .then((info: TableInfo) => {
         setTables(info.tables);
         setSource(info.source);
-        if (info.tables.length > 0 && !activeTable) {
-          setActiveTable(info.tables[0]);
-        }
+        if (info.tables.length > 0 && !activeTable) setActiveTable(info.tables[0]);
       })
       .catch(() => setError('Failed to load tables'));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -52,6 +82,15 @@ export function DataExplorer() {
     try {
       const params = new URLSearchParams({ table: activeTable, page: String(page), pageSize: String(PAGE_SIZE) });
       if (search) params.set('search', search);
+      if (sort) {
+        params.set('sort', sort.column);
+        params.set('sortDir', sort.dir);
+      }
+      if (dateColumn && (dateFrom || dateTo)) {
+        params.set('dateColumn', dateColumn);
+        if (dateFrom) params.set('dateFrom', dateFrom);
+        if (dateTo) params.set('dateTo', dateTo);
+      }
       const res = await fetch(`/api/data/explore?${params}`);
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}));
@@ -66,23 +105,36 @@ export function DataExplorer() {
     } finally {
       setLoading(false);
     }
-  }, [activeTable, search, page]);
+  }, [activeTable, search, page, sort, dateColumn, dateFrom, dateTo]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Reset page when table changes
   const handleTableChange = (table: string) => {
     setActiveTable(table);
     setPage(1);
     setSearch('');
     setSearchInput('');
+    setSort(null);
+    setDateColumn(null);
+    setDateFrom('');
+    setDateTo('');
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSearch(searchInput);
+    setPage(1);
+  };
+
+  const handleSort = (column: string) => {
+    setSort((prev) => {
+      if (prev?.column === column) {
+        return prev.dir === 'asc' ? { column, dir: 'desc' } : null;
+      }
+      return { column, dir: 'asc' };
+    });
     setPage(1);
   };
 
@@ -139,6 +191,42 @@ export function DataExplorer() {
         />
       </form>
 
+      {/* Date range filter */}
+      {dateColumns.length > 0 && (
+        <div className="flex flex-col gap-1.5 rounded-md border border-sidebar-border/30 bg-sidebar-accent/10 p-2">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-medium text-sidebar-foreground/50 uppercase">Filter by date</span>
+            <select
+              value={dateColumn ?? ''}
+              onChange={(e) => { setDateColumn(e.target.value || null); setPage(1); }}
+              className="ml-auto rounded border border-sidebar-border/30 bg-sidebar-accent/30 px-1.5 py-0.5 text-[10px] text-sidebar-foreground outline-none"
+            >
+              <option value="">—</option>
+              {dateColumns.map((col) => (
+                <option key={col} value={col}>{col}</option>
+              ))}
+            </select>
+          </div>
+          {dateColumn && (
+            <div className="flex items-center gap-1">
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+                className="w-full rounded border border-sidebar-border/30 bg-sidebar-accent/20 px-1.5 py-1 text-[10px] text-sidebar-foreground outline-none [color-scheme:dark]"
+              />
+              <span className="text-[10px] text-sidebar-foreground/40">→</span>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+                className="w-full rounded border border-sidebar-border/30 bg-sidebar-accent/20 px-1.5 py-1 text-[10px] text-sidebar-foreground outline-none [color-scheme:dark]"
+              />
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Content */}
       <div className="min-h-0 flex-1">
         {loading ? (
@@ -157,11 +245,27 @@ export function DataExplorer() {
                 <thead>
                   <tr className="border-b border-sidebar-border/20 bg-sidebar-accent/20">
                     {data.columns.map((col) => (
-                      <th
-                        key={col}
-                        className="whitespace-nowrap px-2 py-1.5 text-left font-semibold text-sidebar-foreground/70"
-                      >
-                        {col}
+                      <th key={col} className="px-2 py-1.5 text-left">
+                        <button
+                          onClick={() => handleSort(col)}
+                          className={cn(
+                            'flex items-center gap-1 font-semibold transition-colors',
+                            sort?.column === col
+                              ? 'text-sidebar-foreground'
+                              : 'text-sidebar-foreground/60 hover:text-sidebar-foreground',
+                          )}
+                        >
+                          {col}
+                          {sort?.column === col ? (
+                            sort.dir === 'asc' ? (
+                              <ArrowUpNarrowWide className="size-3 shrink-0" />
+                            ) : (
+                              <ArrowDownWideNarrow className="size-3 shrink-0" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="size-3 shrink-0 opacity-0 group-hover:opacity-40" />
+                          )}
+                        </button>
                       </th>
                     ))}
                   </tr>
@@ -176,15 +280,23 @@ export function DataExplorer() {
                         'hover:bg-sidebar-accent/20',
                       )}
                     >
-                      {data.columns.map((col) => (
-                        <td
-                          key={col}
-                          className="max-w-[160px] truncate px-2 py-1.5 text-sidebar-foreground/80"
-                          title={String(row[col] ?? '')}
-                        >
-                          {formatCellValue(row[col])}
-                        </td>
-                      ))}
+                      {data.columns.map((col) => {
+                        const val = row[col];
+                        return (
+                          <td
+                            key={col}
+                            className={cn(
+                              'max-w-[160px] truncate px-2 py-1.5',
+                              isDateColumn(col, data.types)
+                                ? 'font-mono text-[10px] text-sidebar-foreground/60'
+                                : 'text-sidebar-foreground/80',
+                            )}
+                            title={String(val ?? '')}
+                          >
+                            {formatCellValue(val)}
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))}
                 </tbody>
@@ -194,9 +306,7 @@ export function DataExplorer() {
         ) : data ? (
           <div className="flex flex-col items-center justify-center gap-3 py-12">
             <Table2 className="size-6 text-sidebar-foreground/20" />
-            <p className="text-center text-xs text-sidebar-foreground/30 leading-relaxed">
-              No data found
-            </p>
+            <p className="text-center text-xs text-sidebar-foreground/30 leading-relaxed">No data found</p>
           </div>
         ) : null}
       </div>
@@ -238,6 +348,12 @@ function formatCellValue(value: unknown): string {
   if (typeof value === 'number') {
     if (Number.isInteger(value)) return value.toLocaleString();
     return value.toFixed(2);
+  }
+  if (typeof value === 'string' && !isNaN(Date.parse(value)) && value.includes('T')) {
+    const d = new Date(value);
+    return d.toLocaleString('en-US', {
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+    });
   }
   return String(value);
 }
