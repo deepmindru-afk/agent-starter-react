@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/shadcn/utils';
 
-const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAYS_OF_WEEK = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
 
 export function CalendarView() {
   const today = useMemo(() => new Date(), []);
@@ -85,9 +85,9 @@ export function CalendarView() {
             size="sm"
             onClick={() => setViewDate(new Date(today.getFullYear(), today.getMonth(), 1))}
             className="rounded-md px-1.5 py-1 text-[10px] font-medium"
-            aria-label="Today"
+            aria-label="Сегодня"
           >
-            Today
+            Сегодня
           </Button>
           <Button
             variant="ghost"

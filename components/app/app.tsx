@@ -76,7 +76,7 @@ export function App({ appConfig }: AppProps) {
           participant_name: participantName,
           room_config: roomConfig,
           participant_metadata: JSON.stringify({ role: 'user', department: 'engineering' }),
-          participant_attributes: { region: 'us-east', language: 'en', timezone: 'UTC' },
+          participant_attributes: { region: 'us-east', language: 'ru', timezone: 'UTC' },
         }),
       });
       return await res.json();
@@ -98,7 +98,7 @@ export function App({ appConfig }: AppProps) {
           onRoomNameChange={setRoomName}
         />
       </main>
-      <StartAudioButton label="Start Audio" />
+      <StartAudioButton label="Начать аудио" />
 
       {isConnected && (
         <>
@@ -107,7 +107,7 @@ export function App({ appConfig }: AppProps) {
             size="icon"
             onClick={() => setSidebarOpen(true)}
             className="fixed left-3 top-3 z-50 md:left-6 md:top-6"
-            aria-label="Open sidebar"
+            aria-label="Открыть боковую панель"
           >
             <Menu className="size-5" />
           </Button>
@@ -116,7 +116,7 @@ export function App({ appConfig }: AppProps) {
             size="icon"
             onClick={() => setRightSidebarOpen(true)}
             className="fixed right-3 top-3 z-50 md:right-6 md:top-6"
-            aria-label="Open right sidebar"
+            aria-label="Открыть правую панель"
           >
             <Table2 className="size-5" />
           </Button>

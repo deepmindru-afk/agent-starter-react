@@ -80,36 +80,36 @@ function groupSessions(sessions: Session[]) {
     else olderSessions.push(s);
   }
 
-  if (todaySessions.length > 0) groups.push({ label: 'Today', sessions: todaySessions });
-  if (yesterdaySessions.length > 0) groups.push({ label: 'Yesterday', sessions: yesterdaySessions });
-  if (olderSessions.length > 0) groups.push({ label: 'Older', sessions: olderSessions });
+  if (todaySessions.length > 0) groups.push({ label: 'Сегодня', sessions: todaySessions });
+  if (yesterdaySessions.length > 0) groups.push({ label: 'Вчера', sessions: yesterdaySessions });
+  if (olderSessions.length > 0) groups.push({ label: 'Ранее', sessions: olderSessions });
 
   return groups;
 }
 
 const sampleTableData = [
-  { task: 'Implement auth middleware', status: '✅ Done', priority: 'High', assignee: 'Alice' },
-  { task: 'Write API documentation', status: '🔄 In Progress', priority: 'Medium', assignee: 'Bob' },
-  { task: 'Fix login redirect bug', status: '✅ Done', priority: 'High', assignee: 'Alice' },
-  { task: 'Design dashboard layout', status: '⏳ Pending', priority: 'Low', assignee: 'Carol' },
-  { task: 'Database migration script', status: '🔄 In Progress', priority: 'High', assignee: 'Bob' },
-  { task: 'End-to-end tests', status: '⏳ Pending', priority: 'Medium', assignee: 'Carol' },
+  { task: 'Реализовать middleware аутентификации', status: '✅ Готово', priority: 'Высокий', assignee: 'Алиса' },
+  { task: 'Написать документацию API', status: '🔄 В процессе', priority: 'Средний', assignee: 'Боб' },
+  { task: 'Исправить баг редиректа входа', status: '✅ Готово', priority: 'Высокий', assignee: 'Алиса' },
+  { task: 'Дизайн панели управления', status: '⏳ Ожидает', priority: 'Низкий', assignee: 'Каролина' },
+  { task: 'Скрипт миграции базы данных', status: '🔄 В процессе', priority: 'Высокий', assignee: 'Боб' },
+  { task: 'Сквозные тесты', status: '⏳ Ожидает', priority: 'Средний', assignee: 'Каролина' },
 ];
 
 function SampleTable() {
   return (
     <div className="mb-4 overflow-hidden rounded-lg border border-sidebar-border/40">
       <div className="bg-sidebar-accent/30 px-3 py-2 text-[11px] font-semibold tracking-wider text-sidebar-foreground/60 uppercase">
-        Project Tasks
+        Задачи проекта
       </div>
       <div className="overflow-x-auto">
         <Table className="w-full text-xs">
           <TableHeader>
             <TableRow className="border-b border-sidebar-border/20 bg-sidebar-accent/20 hover:bg-sidebar-accent/20">
-              <TableHead className="px-3 py-2 font-semibold text-sidebar-foreground/70">Task</TableHead>
-              <TableHead className="px-3 py-2 font-semibold text-sidebar-foreground/70">Status</TableHead>
-              <TableHead className="px-3 py-2 font-semibold text-sidebar-foreground/70">Priority</TableHead>
-              <TableHead className="px-3 py-2 font-semibold text-sidebar-foreground/70">Assignee</TableHead>
+              <TableHead className="px-3 py-2 font-semibold text-sidebar-foreground/70">Задача</TableHead>
+              <TableHead className="px-3 py-2 font-semibold text-sidebar-foreground/70">Статус</TableHead>
+              <TableHead className="px-3 py-2 font-semibold text-sidebar-foreground/70">Приоритет</TableHead>
+              <TableHead className="px-3 py-2 font-semibold text-sidebar-foreground/70">Исполнитель</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -132,9 +132,9 @@ function SampleTable() {
                   <span
                     className={cn(
                       'rounded-full px-1.5 py-0.5 text-[10px] font-semibold',
-                      row.priority === 'High' && 'bg-destructive/15 text-destructive',
-                      row.priority === 'Medium' && 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
-                      row.priority === 'Low' && 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                      row.priority === 'Высокий' && 'bg-destructive/15 text-destructive',
+                      row.priority === 'Средний' && 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+                      row.priority === 'Низкий' && 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
                     )}
                   >
                     {row.priority}
@@ -329,7 +329,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 )}
               >
                 <MessageSquareTextIcon className="size-3.5" />
-                Chat
+                Чат
               </Button>
               <Button
                 variant="ghost"
@@ -343,14 +343,14 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 )}
               >
                 <CalendarDays className="size-3.5" />
-                Calendar
+                Календарь
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
-                    aria-label="Sidebar menu"
+                    aria-label="Меню боковой панели"
                     className="rounded-md p-1.5"
                   >
                     <MoreVertical className="size-4" />
@@ -359,12 +359,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 <DropdownMenuContent align="end" sideOffset={6}>
                   <DropdownMenuItem onClick={() => setShowSampleTable((v) => !v)}>
                     <Table2 className="size-4" />
-                    {showSampleTable ? 'Hide Sample Table' : 'Show Sample Table'}
+                    {showSampleTable ? 'Скрыть таблицу' : 'Показать таблицу'}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => setShowApiKey((v) => !v)}>
                     <KeyRound className="size-4" />
-                    {showApiKey ? 'Hide API Key' : 'Show API Key'}
+                    {showApiKey ? 'Скрыть ключ API' : 'Показать ключ API'}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -394,7 +394,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 className="mb-1.5 gap-1.5 px-0 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase hover:text-sidebar-foreground/70"
               >
                 <KeyRound className="size-3" />
-                API Key
+                Ключ API
               </Button>
               {showApiKey && (
                 <Input
@@ -412,7 +412,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 className="mt-2 gap-1.5 px-0 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase hover:text-sidebar-foreground/70"
               >
                 <Link className="size-3" />
-                API Endpoint
+                Endpoint API
               </Button>
               {showApiEndpoint && (
                 <Input
@@ -429,7 +429,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               <div className="border-b border-sidebar-border/50 px-4 py-2.5">
                 <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase">
                   <Brain className="size-3" />
-                  Model
+                  Модель
                 </div>
                 <Select
                   value={selectedModel}
@@ -439,7 +439,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                   }}
                 >
                   <SelectTrigger className="w-full border-sidebar-border/50 bg-sidebar-accent/30 text-sidebar-foreground text-sm transition-colors hover:bg-sidebar-accent/50">
-                    <SelectValue placeholder="Select model" />
+                    <SelectValue placeholder="Выберите модель" />
                   </SelectTrigger>
                   <SelectContent>
                     {models.map((model) => (
@@ -462,7 +462,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search conversations..."
+                  placeholder="Поиск диалогов..."
                   className="border-sidebar-border/30 bg-sidebar-accent/20 py-1.5 pr-2.5 pl-8 text-xs placeholder:text-sidebar-foreground/30"
                 />
               </div>
@@ -474,7 +474,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 <div className="flex flex-col items-center justify-center gap-3 py-20">
                   <div className="size-6 animate-spin rounded-full border-2 border-sidebar-border/40 border-t-sidebar-foreground/70" />
                   <span className="text-[11px] text-sidebar-foreground/40 animate-pulse">
-                    Loading conversations...
+                    Загрузка диалогов...
                   </span>
                 </div>
               ) : filteredSessions.length === 0 ? (
@@ -483,7 +483,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                     <History className="size-5 text-sidebar-foreground/30" />
                   </div>
                   <p className="px-4 text-center text-xs text-sidebar-foreground/40 leading-relaxed">
-                    {search ? 'No conversations match your search.' : 'No conversations yet.'}
+                    {search ? 'Нет диалогов по вашему запросу.' : 'Пока нет диалогов.'}
                   </p>
                 </div>
               ) : (

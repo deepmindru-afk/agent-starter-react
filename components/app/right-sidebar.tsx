@@ -48,7 +48,7 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
                 )}
               >
                 <MessageSquareTextIcon className="size-3.5" />
-                Samples
+                Примеры
               </Button>
               <Button
                 variant="ghost"
@@ -62,7 +62,7 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
                 )}
               >
                 <CalendarDays className="size-3.5" />
-                Calendar
+                Календарь
               </Button>
               <Button
                 variant="ghost"
@@ -76,7 +76,7 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
                 )}
               >
                 <LayoutDashboard className="size-3.5" />
-                Dashboard
+                Панель
               </Button>
               <Button
                 variant="ghost"
@@ -90,7 +90,7 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
                 )}
               >
                 <FileText className="size-3.5" />
-                Editor
+                Редактор
               </Button>
               <Button
                 variant="ghost"
@@ -112,7 +112,7 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
               <iframe
                 src={process.env.NEXT_PUBLIC_DASHBOARD_URL || 'https://portalos.ru'}
                 className="flex-1 w-full border-0"
-                title="Dashboard"
+                title="Панель управления"
               />
             )}
 

@@ -112,7 +112,7 @@ export function getSandboxTokenSource(appConfig: AppConfig) {
           participant_identity: options.participantIdentity ?? "none",
           participant_name: options.participantName ?? "none",
           participant_metadata: JSON.stringify({ role: 'user', department: 'engineering' }),
-          participant_attributes: { region: 'us-east', language: 'en', timezone: 'UTC' },
+          participant_attributes: { region: 'us-east', language: 'ru', timezone: 'UTC' },
         }),
       });
       return await res.json();

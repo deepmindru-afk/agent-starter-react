@@ -51,7 +51,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
 
   return (
     <html
-      lang="en"
+      lang="ru"
       suppressHydrationWarning
       className={cn(
         publicSans.variable,

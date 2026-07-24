@@ -38,14 +38,14 @@ export interface Command {
 }
 
 const DEFAULT_COMMANDS: Command[] = [
-  { command: '/help', description: 'Show available commands', example: '/help' },
-  { command: '/clear', description: 'Clear the chat transcript', example: '/clear' },
-  { command: '/feedback', description: 'Send feedback about the agent', example: '/feedback The agent was helpful' },
-  { command: '/summarize', description: 'Summarize the conversation', example: '/summarize' },
-  { command: '/voice', description: 'Switch to voice-only mode', example: '/voice' },
-  { command: '/realtime', description: 'Switch to real-time mode', example: '/realtime' },
-  { command: '/call', description: 'Initiate a call', example: '/call' },
-  { command: '/imgstream', description: 'Start an image stream', example: '/imgstream' },
+  { command: '/help', description: 'Показать доступные команды', example: '/help' },
+  { command: '/clear', description: 'Очистить историю чата', example: '/clear' },
+  { command: '/feedback', description: 'Отправить отзыв об агенте', example: '/feedback Агент был полезен' },
+  { command: '/summarize', description: 'Суммировать разговор', example: '/summarize' },
+  { command: '/voice', description: 'Переключиться в голосовой режим', example: '/voice' },
+  { command: '/realtime', description: 'Переключиться в режим реального времени', example: '/realtime' },
+  { command: '/call', description: 'Начать звонок', example: '/call' },
+  { command: '/imgstream', description: 'Запустить поток изображений', example: '/imgstream' },
 ];
 
 const LK_TOGGLE_VARIANT_2 = [
@@ -332,7 +332,7 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, onClear, className,
           ref={inputRef}
           value={message}
           disabled={!chatOpen || isSending}
-          placeholder="Type / for commands..."
+          placeholder="Введите / для команд..."
           onKeyDown={handleKeyDown}
           onChange={(e) => setMessage(e.target.value)}
           className="field-sizing-content max-h-16 min-h-8 flex-1 resize-none py-2 text-base [scrollbar-width:thin] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
@@ -351,7 +351,7 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, onClear, className,
             type="button"
             variant="ghost"
             disabled={!chatOpen || isSending}
-            title="Attach file"
+            title="Прикрепить файл"
             onClick={() => fileInputRef.current?.click()}
             className="text-muted-foreground hover:text-foreground size-9 shrink-0"
           >
@@ -362,7 +362,7 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, onClear, className,
             type="button"
             disabled={isDisabled}
             variant={isDisabled ? 'secondary' : 'default'}
-            title={isSending ? 'Sending...' : 'Send'}
+            title={isSending ? 'Отправка...' : 'Отправить'}
             onClick={handleButtonClick}
             className="disabled:cursor-not-allowed"
           >
@@ -549,7 +549,7 @@ export function AgentControlBar({
 
   return (
     <div
-      aria-label="Voice assistant controls"
+      aria-label="Управление голосовым ассистентом"
       className={cn(
         'bg-background border-input/50 dark:border-muted flex flex-col border p-3 drop-shadow-md/3',
         variant === 'livekit' ? 'rounded-[31px]' : 'rounded-lg',
@@ -579,7 +579,7 @@ export function AgentControlBar({
             <AgentTrackControl
               variant={variant === 'outline' ? 'outline' : 'default'}
               kind="audioinput"
-              aria-label="Toggle microphone"
+              aria-label="Микрофон"
               source={Track.Source.Microphone}
               pressed={microphoneToggle.enabled}
               disabled={microphoneToggle.pending}
@@ -601,7 +601,7 @@ export function AgentControlBar({
             <AgentTrackControl
               variant={variant === 'outline' ? 'outline' : 'default'}
               kind="videoinput"
-              aria-label="Toggle camera"
+              aria-label="Камера"
               source={Track.Source.Camera}
               pressed={cameraToggle.enabled}
               pending={cameraToggle.pending}
@@ -622,7 +622,7 @@ export function AgentControlBar({
           {visibleControls.screenShare && (
             <AgentTrackToggle
               variant={variant === 'outline' ? 'outline' : 'default'}
-              aria-label="Toggle screen share"
+              aria-label="Демонстрация экрана"
               source={Track.Source.ScreenShare}
               pressed={screenShareToggle.enabled}
               disabled={screenShareToggle.pending}
@@ -636,7 +636,7 @@ export function AgentControlBar({
             <Toggle
               variant={variant === 'outline' ? 'outline' : 'default'}
               pressed={isChatOpen || isChatOpenUncontrolled}
-              aria-label="Toggle transcript"
+              aria-label="Чат"
               onPressedChange={(state) => {
                 if (!onIsChatOpenChange) setIsChatOpenUncontrolled(state);
                 else onIsChatOpenChange(state);
@@ -661,8 +661,8 @@ export function AgentControlBar({
                 'bg-destructive/10 dark:bg-destructive/10 text-destructive hover:bg-destructive/20 dark:hover:bg-destructive/20 focus:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/4 rounded-full font-mono text-xs font-bold tracking-wider'
             )}
           >
-            <span className="hidden md:inline">END CALL</span>
-            <span className="inline md:hidden">END</span>
+            <span className="hidden md:inline">ЗАВЕРШИТЬ</span>
+            <span className="inline md:hidden">ВЫЙТИ</span>
           </AgentDisconnectButton>
         )}
       </div>

@@ -81,7 +81,7 @@ export function DataExplorer() {
         setSource(info.source);
         if (info.tables.length > 0 && !activeTable) setActiveTable(info.tables[0]);
       })
-      .catch(() => setError('Failed to load tables'));
+      .catch(() => setError('Не удалось загрузить таблицы'));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch table data
@@ -156,7 +156,7 @@ export function DataExplorer() {
       <div className="flex items-center gap-2">
         <Database className="size-3.5 text-sidebar-foreground/50" />
         <span className="text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase">
-          Data Explorer
+          Обозреватель данных
         </span>
         <span
           className={cn(
@@ -166,7 +166,7 @@ export function DataExplorer() {
               : 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
           )}
         >
-          {source === 'live' ? 'Live' : 'Sample'}
+          {source === 'live' ? 'В реальном времени' : 'Пример'}
         </span>
       </div>
 
@@ -198,7 +198,7 @@ export function DataExplorer() {
           type="text"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Search rows..."
+          placeholder="Поиск строк..."
           className="border-sidebar-border/40 bg-sidebar-accent/20 py-1.5 pl-7 pr-2 text-xs placeholder:text-sidebar-foreground/30"
         />
       </form>
@@ -207,7 +207,7 @@ export function DataExplorer() {
       {dateColumns.length > 0 && (
         <div className="flex flex-col gap-1.5 rounded-md border border-sidebar-border/30 bg-sidebar-accent/10 p-2">
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-medium text-sidebar-foreground/50 uppercase">Filter by date</span>
+            <span className="text-[10px] font-medium text-sidebar-foreground/50 uppercase">Фильтр по дате</span>
             <select
               value={dateColumn ?? ''}
               onChange={(e) => { setDateColumn(e.target.value || null); setPage(1); }}
@@ -320,7 +320,7 @@ export function DataExplorer() {
         ) : data ? (
           <div className="flex flex-col items-center justify-center gap-3 py-12">
             <Table2 className="size-6 text-sidebar-foreground/20" />
-            <p className="text-center text-xs text-sidebar-foreground/30 leading-relaxed">No data found</p>
+            <p className="text-center text-xs text-sidebar-foreground/30 leading-relaxed">Данные не найдены</p>
           </div>
         ) : null}
       </div>
@@ -329,7 +329,7 @@ export function DataExplorer() {
       {data && data.total > PAGE_SIZE && (
         <div className="flex items-center justify-between border-t border-sidebar-border/20 pt-2">
           <span className="text-[10px] text-sidebar-foreground/40">
-            {data.total} row{data.total !== 1 ? 's' : ''}
+            {data.total} {data.total === 1 ? 'строка' : data.total < 5 ? 'строки' : 'строк'}
           </span>
           <div className="flex items-center gap-1">
             <Button
@@ -369,7 +369,7 @@ function formatCellValue(value: unknown): string {
   }
   if (typeof value === 'string' && !isNaN(Date.parse(value)) && value.includes('T')) {
     const d = new Date(value);
-    return d.toLocaleString('en-US', {
+    return d.toLocaleString('ru-RU', {
       month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
     });
   }

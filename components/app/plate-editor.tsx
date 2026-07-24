@@ -97,35 +97,35 @@ export function PlateEditor() {
         <ToolbarButton
           active={editor.isActive('bold')}
           onClick={() => editor.chain().focus().toggleBold().run()}
-          tooltip="Bold"
+          tooltip="Жирный"
         >
           <Bold className="size-3.5" />
         </ToolbarButton>
         <ToolbarButton
           active={editor.isActive('italic')}
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          tooltip="Italic"
+          tooltip="Курсив"
         >
           <Italic className="size-3.5" />
         </ToolbarButton>
         <ToolbarButton
           active={editor.isActive('underline')}
           onClick={() => editor.chain().focus().toggleUnderline().run()}
-          tooltip="Underline"
+          tooltip="Подчеркнутый"
         >
           <Underline className="size-3.5" />
         </ToolbarButton>
         <ToolbarButton
           active={editor.isActive('strike')}
           onClick={() => editor.chain().focus().toggleStrike().run()}
-          tooltip="Strikethrough"
+          tooltip="Зачёркнутый"
         >
           <Strikethrough className="size-3.5" />
         </ToolbarButton>
         <ToolbarButton
           active={editor.isActive('code')}
           onClick={() => editor.chain().focus().toggleCode().run()}
-          tooltip="Code"
+          tooltip="Код"
         >
           <Code className="size-3.5" />
         </ToolbarButton>
@@ -135,21 +135,21 @@ export function PlateEditor() {
         <ToolbarButton
           active={editor.isActive('heading', { level: 1 })}
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          tooltip="Heading 1"
+          tooltip="Заголовок 1"
         >
           <Heading1 className="size-3.5" />
         </ToolbarButton>
         <ToolbarButton
           active={editor.isActive('heading', { level: 2 })}
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          tooltip="Heading 2"
+          tooltip="Заголовок 2"
         >
           <Heading2 className="size-3.5" />
         </ToolbarButton>
         <ToolbarButton
           active={editor.isActive('heading', { level: 3 })}
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          tooltip="Heading 3"
+          tooltip="Заголовок 3"
         >
           <Heading3 className="size-3.5" />
         </ToolbarButton>
@@ -159,14 +159,14 @@ export function PlateEditor() {
         <ToolbarButton
           active={editor.isActive('blockquote')}
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          tooltip="Blockquote"
+          tooltip="Цитата"
         >
           <Quote className="size-3.5" />
         </ToolbarButton>
 
         <div className="flex-1" />
 
-        <ToolbarButton onClick={handleReset} tooltip="Reset">
+        <ToolbarButton onClick={handleReset} tooltip="Сброс">
           <span className="text-[10px] font-medium">↺</span>
         </ToolbarButton>
       </div>
@@ -180,7 +180,7 @@ export function PlateEditor() {
       >
         <Editor
           editor={editor}
-          placeholder="Start typing..."
+          placeholder="Начните печатать..."
           className={cn(
             'size-full px-3 py-3 text-sm',
             isDark ? 'text-sidebar-foreground' : 'text-gray-800',

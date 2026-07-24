@@ -294,7 +294,7 @@ export function TileLayout({
                   className="size-full cursor-pointer object-cover"
                 />
                 <span className="absolute bottom-0 left-0 right-0 truncate bg-black/50 px-1 text-center text-xs text-white">
-                  {isCameraEnabled ? 'Camera' : 'Screen Share'}
+                  {isCameraEnabled ? 'Камера' : 'Демонстрация экрана'}
                 </span>
               </div>
             )}
@@ -337,7 +337,7 @@ export function TileLayout({
               size="icon"
               onClick={handleCloseZoom}
               className="absolute -top-10 right-0 text-white hover:text-white/70"
-              aria-label="Close zoom"
+              aria-label="Закрыть увеличение"
             >
               <X className="size-6" />
             </Button>
