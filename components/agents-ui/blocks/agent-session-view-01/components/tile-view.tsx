@@ -106,6 +106,32 @@ export function TileLayout({
   const isScreenShareEnabled = screenShareTrack && !screenShareTrack.publication.isMuted;
   const hasSecondTile = isCameraEnabled || isScreenShareEnabled;
 
+  const remoteVideoTracks = useMemo(() => {
+    return remoteParticipants
+      .filter((p) => {
+        const pub = p.getTrackPublication(Track.Source.Camera);
+        return pub && !pub.isMuted;
+      })
+      .map(
+        (p) =>
+          ({
+            source: Track.Source.Camera,
+            participant: p,
+            publication: p.getTrackPublication(Track.Source.Camera)!,
+          }) as TrackReference
+      );
+  }, [remoteParticipants]);
+
+  const [zoomedTrackRef, setZoomedTrackRef] = useState<TrackReference | null>(null);
+
+  const handleZoom = useCallback((trackRef: TrackReference) => {
+    setZoomedTrackRef(trackRef);
+  }, []);
+
+  const handleCloseZoom = useCallback(() => {
+    setZoomedTrackRef(null);
+  }, []);
+
   const animationDelay = isChatOpen ? 0 : 0.15;
   const isAvatar = agentVideoTrack !== undefined;
   const videoWidth = agentVideoTrack?.publication.dimensions?.width ?? 0;
@@ -207,65 +233,15 @@ export function TileLayout({
                     width={videoWidth}
                     height={videoHeight}
                     trackRef={agentVideoTrack}
-<<<<<<< HEAD
                     onClick={() => handleZoom(agentVideoTrack)}
-                    className={cn('cursor-pointer', chatOpen && 'size-[90px] object-cover')}
-=======
+                    //className={cn('cursor-pointer', chatOpen && 'size-[90px] object-cover')}
                     className={cn(isChatOpen && 'size-[90px] object-cover')}
->>>>>>> upstream/main
                   />
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-<<<<<<< HEAD
-          {!isAvatar && (
-            <div
-              className={cn([
-                'grid',
-                chatOpen && tileViewClassNames.secondTileChatOpen,
-                !chatOpen && tileViewClassNames.secondTileChatClosed,
-              ])}
-            >
-              {/* Camera & Screen Share */}
-              <AnimatePresence>
-                {((cameraTrack && isCameraEnabled) || (screenShareTrack && isScreenShareEnabled)) && (
-                  <motion.div
-                    key="camera"
-                    layout="position"
-                    layoutId="camera"
-                    initial={{
-                      opacity: 0,
-                      scale: 0,
-                    }}
-                    animate={{
-                      opacity: 1,
-                      scale: 1,
-                    }}
-                    exit={{
-                      opacity: 0,
-                      scale: 0,
-                    }}
-                    transition={{
-                      ...ANIMATION_TRANSITION,
-                      delay: animationDelay,
-                    }}
-                    className="aspect-square size-[90px] drop-shadow-lg/20"
-                  >
-                    <VideoTrack
-                      trackRef={cameraTrack || screenShareTrack}
-                      width={(cameraTrack || screenShareTrack)?.publication.dimensions?.width ?? 0}
-                      height={(cameraTrack || screenShareTrack)?.publication.dimensions?.height ?? 0}
-                      onClick={() => handleZoom(cameraTrack || screenShareTrack!)}
-                      className="bg-muted aspect-square size-[90px] cursor-pointer rounded-md object-cover"
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          )}
-=======
           <div
             className={cn([
               'grid',
@@ -302,13 +278,13 @@ export function TileLayout({
                     trackRef={cameraTrack || screenShareTrack}
                     width={(cameraTrack || screenShareTrack)?.publication.dimensions?.width ?? 0}
                     height={(cameraTrack || screenShareTrack)?.publication.dimensions?.height ?? 0}
+                    onClick={() => handleZoom(cameraTrack || screenShareTrack!)}
                     className="bg-muted aspect-square size-[90px] rounded-md object-cover"
                   />
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
->>>>>>> upstream/main
         </div>
         {(remoteVideoTracks.length > 0 || (isAvatar && (isCameraEnabled || isScreenShareEnabled))) && (
           <div className="flex flex-wrap justify-center gap-2 pt-2">
@@ -347,37 +323,6 @@ export function TileLayout({
         )}
       </div>
     </div>
-      {zoomedTrackRef && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
-          onClick={handleCloseZoom}
-        >
-          <motion.div
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            className="relative max-h-[90vh] max-w-[90vw]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleCloseZoom}
-              className="absolute -top-10 right-0 text-white hover:text-white/70"
-              aria-label="Закрыть увеличение"
-            >
-              <X className="size-6" />
-            </Button>
-            <VideoTrack
-              trackRef={zoomedTrackRef}
-              width={zoomedTrackRef.publication.dimensions?.width ?? 1280}
-              height={zoomedTrackRef.publication.dimensions?.height ?? 720}
-              className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain"
-            />
-          </motion.div>
-        </motion.div>
-      )}
-    </>
+
   );
 }
