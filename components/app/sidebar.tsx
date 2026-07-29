@@ -14,6 +14,7 @@ import {
   Sparkles,
   Table2,
   XIcon,
+  Send,
 } from 'lucide-react';
 import { useAgent, useRoomContext } from '@livekit/components-react';
 import { AnimatePresence, motion } from 'motion/react';
@@ -33,6 +34,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Table,
   TableBody,
@@ -165,7 +167,34 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const configSentRef = useRef('');
   const [showSampleTable, setShowSampleTable] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'calendar'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'send_data'>('chat');
+
+  const [textData, setTextData] = useState('');
+  const [roomName, setRoomName] = useState('');
+
+  const handleSendData = async () => {
+    if (!textData) return;
+    try {
+      const response = await fetch('/api/send-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          message: textData, 
+          room_name: roomName 
+        }),
+      });
+
+      if (response.ok) {
+        alert('Data sent successfully!');
+        setTextData('');
+      } else {
+        alert('Failed to send data.');
+      }
+    } catch (error) {
+      console.error('Error sending data:', error);
+      alert('An error occurred while sending data.');
+    }
+  };
 
   const sendConfigToRoom = useCallback(
     (key: string, endpoint: string) => {
@@ -215,332 +244,246 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       const list: Model[] = data.models ?? [];
       setModels(list);
       if (list.length > 0)
-        setSelectedModel((prev) => (prev && list.some((m) => m.id === prev) ? prev : list[0].id));
-    } catch {
-      // ignore
+        setSelectedModel(list[0].id);
+    } catch (e) {
+      console.error('Error fetching models:', e);
     }
   }, []);
 
   useEffect(() => {
-    fetchModels(apiKey, apiEndpoint);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleApiKeyChange = useCallback(
-    (value: string) => {
-      setApiKey(value);
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        fetchModels(value, apiEndpoint);
-        sendConfigToRoom(value, apiEndpoint);
-      }, 500);
-    },
-    [fetchModels, apiEndpoint, sendConfigToRoom]
-  );
-
-  const handleEndpointChange = useCallback(
-    (value: string) => {
-      setApiEndpoint(value);
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        fetchModels(apiKey, value);
-        sendConfigToRoom(apiKey, value);
-      }, 500);
-    },
-    [fetchModels, apiKey, sendConfigToRoom]
-  );
-
-  const load = useCallback(async () => {
-    const participant = room?.localParticipant;
-    const agentIdentity = agent?.identity;
-    if (!participant || !agentIdentity) {
-      setLoading(false);
-      return;
+    if (apiKey && apiEndpoint) {
+      fetchModels(apiKey, apiEndpoint);
     }
+  }, [apiKey, apiEndpoint, fetchModels]);
 
-    setLoading(true);
-    setSessions([]);
-
-    try {
-      const response = await participant.performRpc({
-        destinationIdentity: agentIdentity,
-        method: 'get_sessions',
-        payload: JSON.stringify({ limit: 20 }),
-        responseTimeout: 10000,
-      });
-      const data = JSON.parse(response);
-      setSessions(data.sessions ?? []);
-    } catch {
-      // RPC unavailable — keep empty
-    } finally {
-      setLoading(false);
-    }
-  }, [room, agent]);
-
-  useEffect(() => {
-    if (open) load();
-  }, [open, load]);
-
-  const filteredSessions = useMemo(
-    () =>
-      search
-        ? sessions.filter(
-            (s) =>
-              s.title.toLowerCase().includes(search.toLowerCase()) ||
-              s.preview.toLowerCase().includes(search.toLowerCase())
-          )
-        : sessions,
-    [sessions, search]
-  );
+  const filteredSessions = useMemo(() => {
+    if (!search) return sessions;
+    return sessions.filter((s) =>
+      s.title.toLowerCase().includes(search.toLowerCase()) ||
+      s.preview.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [sessions, search]);
 
   const grouped = useMemo(() => groupSessions(filteredSessions), [filteredSessions]);
 
   return (
     <AnimatePresence>
       {open && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
-            onClick={onClose}
-          />
-          <motion.aside
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-            className={cn(
-              'fixed top-0 left-0 z-50 flex h-full w-72 flex-col border-r md:w-80',
-              'bg-sidebar text-sidebar-foreground border-sidebar-border'
-            )}
-          >
-            <div className="flex items-center gap-1 border-b border-sidebar-border bg-gradient-to-r from-sidebar to-sidebar/95 px-3 py-2">
-              <Button
+        <motion.aside
+          initial={{ x: '-100%' }}
+          animate={{ x: 0 }}
+          exit={{ x: '-100%' }}
+          transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+          className={cn(
+            'fixed inset-0 z-50 flex h-svh w-full flex-col',
+            'bg-sidebar text-sidebar-foreground'
+          )}
+        >
+          <div className="flex items-center justify-between border-b border-sidebar-border px-4 py-3">
+            <div className="flex items-center gap-2">
+              <div className="flex size-8 items-center justify-center rounded-lg bg-sidebar-accent">
+                <Brain className="size-5" />
+              </div>
+              <span className="text-sm font-semibold">AI Assistant</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="rounded-md p-1.5"
+            >
+              <XIcon className="size-4" />
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-1 p-2">
+             <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setActiveTab('chat')}
                 className={cn(
-                  'gap-1.5 px-2.5 py-1.5 text-xs font-medium',
+                  'flex-1 gap-1.5 px-2 py-1.5 text-xs font-medium',
                   activeTab === 'chat'
-                    ? 'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                     : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
                 )}
               >
                 <MessageSquareTextIcon className="size-3.5" />
-                Чат
+                Диалоги
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setActiveTab('calendar')}
+                onClick={() => setActiveTab('send_data')}
                 className={cn(
-                  'gap-1.5 px-2.5 py-1.5 text-xs font-medium',
-                  activeTab === 'calendar'
-                    ? 'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
+                  'flex-1 gap-1.5 px-2 py-1.5 text-xs font-medium',
+                  activeTab === 'send_data'
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                     : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
                 )}
               >
-                <CalendarDays className="size-3.5" />
-                Календарь
+                <Send className="size-3.5" />
+                Отправить
               </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Меню боковой панели"
-                    className="rounded-md p-1.5"
-                  >
-                    <MoreVertical className="size-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" sideOffset={6}>
-                  <DropdownMenuItem onClick={() => setShowSampleTable((v) => !v)}>
-                    <Table2 className="size-4" />
-                    {showSampleTable ? 'Скрыть таблицу' : 'Показать таблицу'}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setShowApiKey((v) => !v)}>
-                    <KeyRound className="size-4" />
-                    {showApiKey ? 'Скрыть ключ API' : 'Показать ключ API'}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+          </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="rounded-md p-1.5"
-              >
-                <XIcon className="size-4" />
-              </Button>
-            </div>
-
-            {activeTab === 'calendar' && (
-              <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth p-3 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-sidebar-border/30 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
-                <CalendarView />
-              </div>
-            )}
-
-            {activeTab === 'chat' && (<>
-            <div className="border-b border-sidebar-border/50 px-4 py-2.5">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowApiKey(!showApiKey)}
-                className="mb-1.5 gap-1.5 px-0 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase hover:text-sidebar-foreground/70"
-              >
-                <KeyRound className="size-3" />
-                Ключ API
-              </Button>
-              {showApiKey && (
-                <Input
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => handleApiKeyChange(e.target.value)}
-                  placeholder="sk-..."
-                  className="border-sidebar-border/30 bg-sidebar-accent/20 py-1.5 px-2.5 text-xs placeholder:text-sidebar-foreground/30"
-                />
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowApiEndpoint(!showApiEndpoint)}
-                className="mt-2 gap-1.5 px-0 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase hover:text-sidebar-foreground/70"
-              >
-                <Link className="size-3" />
-                Endpoint API
-              </Button>
-              {showApiEndpoint && (
-                <Input
-                  type="text"
-                  value={apiEndpoint}
-                  onChange={(e) => handleEndpointChange(e.target.value)}
-                  placeholder="https://lm.portalos.ru/v1/models"
-                  className="mt-1 border-sidebar-border/30 bg-sidebar-accent/20 py-1.5 px-2.5 text-xs placeholder:text-sidebar-foreground/30"
-                />
-              )}
-            </div>
-
-            {models.length > 0 && (
-              <div className="border-b border-sidebar-border/50 px-4 py-2.5">
-                <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase">
-                  <Brain className="size-3" />
-                  Модель
-                </div>
-                <Select
-                  value={selectedModel}
-                  onValueChange={(value) => {
-                    setSelectedModel(value);
-                    room?.localParticipant?.setAttributes({ current_model: value });
-                  }}
-                >
-                  <SelectTrigger className="w-full border-sidebar-border/50 bg-sidebar-accent/30 text-sidebar-foreground text-sm transition-colors hover:bg-sidebar-accent/50">
-                    <SelectValue placeholder="Выберите модель" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {models.map((model) => (
-                      <SelectItem key={model.id} value={model.id}>
-                        <div className="flex items-center gap-2">
-                          <Sparkles className="size-3 text-sidebar-foreground/40" />
-                          {model.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            <div className="border-b border-sidebar-border/50 px-4 py-2.5">
-              <div className="relative">
-                <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-sidebar-foreground/30" />
-                <Input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Поиск диалогов..."
-                  className="border-sidebar-border/30 bg-sidebar-accent/20 py-1.5 pr-2.5 pl-8 text-xs placeholder:text-sidebar-foreground/30"
-                />
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth p-3 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-sidebar-border/30 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
-              {showSampleTable && <SampleTable />}
-              {loading ? (
-                <div className="flex flex-col items-center justify-center gap-3 py-20">
-                  <div className="size-6 animate-spin rounded-full border-2 border-sidebar-border/40 border-t-sidebar-foreground/70" />
-                  <span className="text-[11px] text-sidebar-foreground/40 animate-pulse">
-                    Загрузка диалогов...
-                  </span>
-                </div>
-              ) : filteredSessions.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-3 py-20">
-                  <div className="flex size-12 items-center justify-center rounded-full bg-sidebar-accent/50">
-                    <History className="size-5 text-sidebar-foreground/30" />
+          {activeTab === 'send_data' ? (
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+               <div className="space-y-2">
+                    <Label htmlFor="sidebar-room-name">Название комнаты</Label>
+                    <Input 
+                      id="sidebar-room-name" 
+                      placeholder="Введите название комнаты..." 
+                      value={roomName}
+                      onChange={(e) => setRoomName(e.target.value)}
+                    />
                   </div>
-                  <p className="px-4 text-center text-xs text-sidebar-foreground/40 leading-relaxed">
-                    {search ? 'Нет диалогов по вашему запросу.' : 'Пока нет диалогов.'}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {grouped.map((group) => (
-                    <div key={group.label}>
-                      <div className="mb-1.5 px-1 text-[11px] font-semibold tracking-wider text-sidebar-foreground/40 uppercase">
-                        {group.label}
-                      </div>
-                      <div className="space-y-0.5">
-                        {group.sessions.map((session) => (
-                          <motion.button
-                            key={session.id}
-                            initial={{ opacity: 0, y: 8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.2 }}
-                            whileTap={{ scale: 0.98 }}
-                            className={cn(
-                              'group w-full rounded-lg p-3 text-left transition-all',
-                              'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                              'border border-transparent hover:border-sidebar-border/30'
-                            )}
-                          >
-                            <div className="mb-1 flex items-center gap-2">
-                              <span className="flex-1 truncate text-sm font-medium">
-                                {session.title}
-                              </span>
-                              <span className="shrink-0 text-[10px] text-sidebar-foreground/25 opacity-0 transition-opacity group-hover:opacity-100">
-                                <Clock className="size-3" />
-                              </span>
-                            </div>
-                            <div className="text-sidebar-foreground/45 mb-1.5 line-clamp-2 text-xs leading-relaxed">
-                              {session.preview}
-                            </div>
-                            <div className="flex items-center gap-1.5 text-[10px] text-sidebar-foreground/25">
-                              <Clock className="size-2.5" />
-                              {new Date(session.updatedAt).toLocaleDateString(undefined, {
-                                month: 'short',
-                                day: 'numeric',
-                                year:
-                                  new Date(session.updatedAt).getFullYear() ===
-                                  new Date().getFullYear()
-                                    ? undefined
-                                    : 'numeric',
-                              })}
-                            </div>
-                          </motion.button>
-                        ))}
-                      </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="sidebar-text-data">Данные</Label>
+                    <div className="flex flex-col gap-2">
+                      <textarea 
+                        id="sidebar-text-data"
+                        className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        placeholder="Введите текст для отправки..."
+                        value={textData}
+                        onChange={(e) => setTextData(e.target.value)}
+                      />
+                      <Button 
+                        onClick={handleSendData} 
+                        className="w-full"
+                        disabled={!textData}
+                      >
+                        Отправить данные
+                      </Button>
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
             </div>
-            </>)}
-          </motion.aside>
-        </>
+          ) : (
+            <>
+              <div className="px-4 py-3">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between px-1">
+                      <Label className="text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/60">
+                        Модель
+                      </Label>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2 text-[10px] text-sidebar-foreground/60"
+                        onClick={() => setShowSampleTable(!showSampleTable)}
+                      >
+                        {showSampleTable ? 'Скрыть' : 'Добавить таблицу'}
+                      </Button>
+                    </div>
+                    <Select
+                      value={selectedModel}
+                      onValueChange={setSelectedModel}
+                    >
+                      <SelectTrigger className="h-8 border-sidebar-border/30 bg-sidebar-accent/20 text-xs">
+                        <SelectValue placeholder="Выберите модель..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {models.map((model) => (
+                          <SelectItem key={model.id} value={model.id}>
+                            <div className="flex items-center gap-2">
+                              <Sparkles className="size-3 text-sidebar-foreground/40" />
+                              {model.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-b border-sidebar-border/50 px-4 py-2.5">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-sidebar-foreground/30" />
+                  <Input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Поиск диалогов..."
+                    className="border-sidebar-border/30 bg-sidebar-accent/20 py-1.5 pr-2.5 pl-8 text-xs placeholder:text-sidebar-foreground/30"
+                  />
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth p-3 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-sidebar-border/30 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
+                {showSampleTable && <SampleTable />}
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center gap-3 py-20">
+                    <div className="size-6 animate-spin rounded-full border-2 border-sidebar-border/40 border-t-sidebar-foreground/70" />
+                    <span className="text-[11px] text-sidebar-foreground/40 animate-pulse">
+                      Загрузка диалогов...
+                    </span>
+                  </div>
+                ) : filteredSessions.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center gap-3 py-20">
+                    <div className="flex size-12 items-center justify-center rounded-full bg-sidebar-accent/50">
+                      <History className="size-5 text-sidebar-foreground/30" />
+                    </div>
+                    <p className="px-4 text-center text-xs text-sidebar-foreground/40 leading-relaxed">
+                      {search ? 'Нет диалогов по вашему запросу.' : 'Пока нет диалогов.'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {grouped.map((group) => (
+                      <div key={group.label}>
+                        <div className="mb-1.5 px-1 text-[11px] font-semibold tracking-wider text-sidebar-foreground/40 uppercase">
+                          {group.label}
+                        </div>
+                        <div className="space-y-0.5">
+                          {group.sessions.map((session) => (
+                            <motion.button
+                              key={session.id}
+                              initial={{ opacity: 0, y: 8 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.2 }}
+                              whileTap={{ scale: 0.98 }}
+                              className={cn(
+                                'group w-full rounded-lg p-3 text-left transition-all',
+                                'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                                'border border-transparent hover:border-sidebar-border/30'
+                              )}
+                            >
+                              <div className="mb-1 flex items-center gap-2">
+                                <span className="flex-1 truncate text-sm font-medium">
+                                  {session.title}
+                                </span>
+                                <span className="shrink-0 text-[10px] text-sidebar-foreground/25 opacity-0 transition-opacity group-hover:opacity-100">
+                                  <Clock className="size-3" />
+                                </span>
+                              </div>
+                              <div className="text-sidebar-foreground/45 mb-1.5 line-clamp-2 text-xs leading-relaxed">
+                                {session.preview}
+                              </div>
+                              <div className="flex items-center gap-1.5 text-[10px] text-sidebar-foreground/25">
+                                <Clock className="size-2.5" />
+                                {new Date(session.updatedAt).toLocaleDateString(undefined, {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year:
+                                    new Date(session.updatedAt).getFullYear() ===
+                                    new Date().getFullYear()
+                                      ? undefined
+                                      : 'numeric',
+                                })}
+                              </div>
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </motion.aside>
       )}
     </AnimatePresence>
   );

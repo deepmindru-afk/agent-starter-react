@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import {
-  Send,
+  CalendarDays,
   FileText,
   LayoutDashboard,
   MessageSquareTextIcon,
@@ -10,9 +10,8 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/shadcn/utils';
+import { CalendarView } from '@/components/app/sidebar-calendar';
 import { DataExplorer } from '@/components/app/data-explorer';
 import { PlateEditor } from '@/components/app/plate-editor';
 
@@ -22,39 +21,7 @@ interface RightSidebarProps {
 }
 
 export function RightSidebar({ open, onClose }: RightSidebarProps) {
-  const [activeTab, setActiveTab] = useState<'chat' | 'send_data' | 'dashboard' | 'editor'>('chat');
-  const [textData, setTextData] = useState('');
-  const [roomName, setRoomName] = useState('');
-
-  const handleSendData = async () => {
-    if (!textData) return;
-    
-    try {
-      // Assuming an API endpoint exists to send data. 
-      // Since I don't have the exact API spec for the frontend, 
-      // I'll implement a fetch call to a hypothetical /api/send-data or similar.
-      // Or better, check if there's a provided tool or environment variable.
-      
-      const response = await fetch('/api/send-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message: textData, 
-          room_name: roomName 
-        }),
-      });
-
-      if (response.ok) {
-        alert('Data sent successfully!');
-        setTextData('');
-      } else {
-        alert('Failed to send data.');
-      }
-    } catch (error) {
-      console.error('Error sending data:', error);
-      alert('An error occurred while sending data.');
-    }
-  };
+  const [activeTab, setActiveTab] = useState<'chat' | 'calendar' | 'dashboard' | 'editor'>('chat');
 
   return (
     open && (
@@ -86,16 +53,16 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setActiveTab('send_data')}
+                onClick={() => setActiveTab('calendar')}
                 className={cn(
                   'gap-1.5 px-2.5 py-1.5 text-xs font-medium',
-                  activeTab === 'send_data'
+                  activeTab === 'calendar'
                     ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                     : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
                 )}
               >
-                <Send className="size-3.5" />
-                Отправить
+                <CalendarDays className="size-3.5" />
+                Календарь
               </Button>
               <Button
                 variant="ghost"
@@ -135,38 +102,9 @@ export function RightSidebar({ open, onClose }: RightSidebarProps) {
               </Button>
             </div>
 
-            {activeTab === 'send_data' && (
-              <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth p-6 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-sidebar-border/30 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
-                <div className="space-y-4 max-w-md mx-auto">
-                  <div className="space-y-2">
-                    <Label htmlFor="room-name">Название комнаты</Label>
-                    <Input 
-                      id="room-name" 
-                      placeholder="Введите название комнаты..." 
-                      value={roomName}
-                      onChange={(e) => setRoomName(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="text-data">Данные</Label>
-                    <div className="flex flex-col gap-2">
-                      <textarea 
-                        id="text-data"
-                        className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        placeholder="Введите текст для отправки..."
-                        value={textData}
-                        onChange={(e) => setTextData(e.target.value)}
-                      />
-                      <Button 
-                        onClick={handleSendData} 
-                        className="w-full"
-                        disabled={!textData}
-                      >
-                        Отправить данные
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+            {activeTab === 'calendar' && (
+              <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth p-3 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-sidebar-border/30 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
+                <CalendarView />
               </div>
             )}
 
