@@ -240,136 +240,28 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, onClear, className,
   }, [chatOpen]);
 
   return (
-    <div className={cn('relative mb-3 flex grow flex-col text-sm', className)}>
-      {isCommandActive && (
-        <div
-          ref={listRef}
-          role="listbox"
-          className="bg-popover text-popover-foreground border-border absolute bottom-full left-0 right-0 mb-2 rounded-lg border p-1 shadow-md"
-        >
-          {filteredCommands.map((cmd, i) => (
-            <Button
-              key={cmd.command}
-              variant="ghost"
-              role="option"
-              aria-selected={i === selectedIndex}
-              onClick={() => handleSelectCommand(cmd)}
-              onMouseEnter={() => setSelectedIndex(i)}
-              className={cn(
-                'w-full justify-start gap-3 rounded-md px-3 py-2 text-left text-sm font-normal',
-                i === selectedIndex && 'bg-muted text-foreground'
-              )}
-            >
-              <CommandIcon className="text-muted-foreground size-4 shrink-0" />
-              <div className="flex min-w-0 flex-1 flex-col">
-                <span className="font-medium">{cmd.command}</span>
-                <span className="text-muted-foreground text-xs">{cmd.description}</span>
-              </div>
-              <span className="text-muted-foreground ml-auto hidden truncate text-xs md:block">
-                {cmd.example}
-              </span>
-            </Button>
-          ))}
-        </div>
-      )}
-
-      {chatOpen && activeCommandPrefix !== null && (
-        <div className="mx-1 mb-2 flex flex-wrap gap-1.5">
-          {commands.slice(0, 4).map((cmd) => (
-            <Button
-              key={cmd.command}
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setMessage(cmd.command + ' ');
-                setShowCommands(false);
-                inputRef.current?.focus();
-              }}
-              className="gap-1 rounded-full px-2.5 py-1 text-xs font-medium"
-            >
-              <CommandIcon className="size-3 shrink-0 opacity-60" />
-              {cmd.command}
-            </Button>
-          ))}
-        </div>
-      )}
-
-      {attachments.length > 0 && (
-        <div className="mx-1 mb-2 flex flex-wrap gap-2">
-          {attachments.map((att, i) => (
-            <div key={i} className="group relative size-16 overflow-hidden rounded-lg border">
-              {att.preview ? (
-                <img
-                  alt={att.file.name}
-                  className="size-full object-cover"
-                  height={64}
-                  src={att.preview}
-                  width={64}
-                />
-              ) : (
-                <div className="bg-muted text-muted-foreground flex size-full items-center justify-center text-xs">
-                  <PaperclipIcon className="size-4" />
-                </div>
-              )}
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => handleRemoveAttachment(i)}
-                className="bg-background/80 hover:bg-background absolute top-0.5 right-0.5 size-5 rounded-full opacity-0 group-hover:opacity-100"
-              >
-                <XIcon className="size-3" />
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="flex grow items-end gap-2 rounded-md pl-1">
-        <textarea
-          autoFocus
-          ref={inputRef}
-          value={message}
-          disabled={!chatOpen || isSending}
-          placeholder="Введите / для команд..."
-          onKeyDown={handleKeyDown}
-          onChange={(e) => setMessage(e.target.value)}
-          className="field-sizing-content max-h-16 min-h-8 flex-1 resize-none py-2 text-base [scrollbar-width:thin] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-        />
-        <div className="flex items-end gap-1 self-end">
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept="image/*,.pdf,.doc,.docx,.txt,.csv,.json"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-          <Button
-            size="icon"
-            type="button"
-            variant="ghost"
-            disabled={!chatOpen || isSending}
-            title="Прикрепить файл"
-            onClick={() => fileInputRef.current?.click()}
-            className="text-muted-foreground hover:text-foreground size-9 shrink-0"
-          >
-            <PaperclipIcon className="size-5" />
-          </Button>
-          <Button
-            size="icon"
-            type="button"
-            disabled={isDisabled}
-            variant={isDisabled ? 'secondary' : 'default'}
-            title={isSending ? 'Отправка...' : 'Отправить'}
-            onClick={handleButtonClick}
-            className="disabled:cursor-not-allowed"
-          >
-            {isSending ? <Loader className="animate-spin" /> : <SendHorizontal />}
-          </Button>
-        </div>
-      </div>
+    <div className={cn('mb-3 flex grow items-end gap-2 rounded-md pl-1 text-sm', className)}>
+      <textarea
+        autoFocus
+        ref={inputRef}
+        value={message}
+        disabled={!chatOpen || isSending}
+        placeholder="Type something..."
+        onKeyDown={handleKeyDown}
+        onChange={(e) => setMessage(e.target.value)}
+        className="field-sizing-content max-h-16 min-h-8 flex-1 resize-none [scrollbar-width:thin] py-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+      />
+      <Button
+        size="icon"
+        type="button"
+        disabled={isDisabled}
+        variant={isDisabled ? 'secondary' : 'default'}
+        title={isSending ? 'Sending...' : 'Send'}
+        onClick={handleButtonClick}
+        className="self-end disabled:cursor-not-allowed"
+      >
+        {isSending ? <Loader className="animate-spin" /> : <SendHorizontal />}
+      </Button>
     </div>
   );
 }
