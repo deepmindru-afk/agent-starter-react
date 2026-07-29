@@ -243,7 +243,7 @@ export function AgentSessionView_01({
           >
             <AgentChatTranscript
               agentState={agentState}
-              messages={messages}
+              messages={filteredMessages}
               className="mx-auto max-w-2xl **:data-[slot=message-scroller-content]:p-4 **:data-[slot=message-scroller-content]:pt-40! md:**:data-[slot=message-scroller-content]:p-6"
             />
           </motion.div>
@@ -292,6 +292,7 @@ export function AgentSessionView_01({
             isConnected={session.isConnected}
             onDisconnect={session.end}
             onIsChatOpenChange={setIsChatOpen}
+            onClear={handleClear}
           />
         </div>
       </motion.div>

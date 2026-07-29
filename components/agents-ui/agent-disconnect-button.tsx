@@ -67,7 +67,7 @@ export function AgentDisconnectButton({
   return (
     <Button size={size} variant={variant} onClick={handleClick} {...props}>
       {icon ?? <PhoneOffIcon />}
-      {children ?? <span className={cn(size?.includes('icon') && 'sr-only')}>ЗАВЕРШИТЬ</span>}
+      {children ?? <span className={cn(size?.includes('icon') && 'sr-only')}>Выйти</span>}
     </Button>
   );
 }

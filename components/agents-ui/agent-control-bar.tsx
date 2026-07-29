@@ -582,8 +582,8 @@ export function AgentControlBar({
                 'bg-destructive/10 dark:bg-destructive/10 text-destructive hover:bg-destructive/20 dark:hover:bg-destructive/20 focus:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/4 rounded-full font-mono text-xs font-bold tracking-wider'
             )}
           >
-            <span className="hidden md:inline">ЗАВЕРШИТЬ</span>
-            <span className="inline md:hidden">ВЫЙТИ</span>
+            <span className="hidden md:inline">Выйти</span>
+            <span className="inline md:hidden">Выйти</span>
           </AgentDisconnectButton>
         )}
       </div>
