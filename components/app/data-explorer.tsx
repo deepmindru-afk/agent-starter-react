@@ -13,7 +13,16 @@ import {
   Table2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Toggle } from '@/components/ui/toggle';
 import {
   Table,
   TableBody,
@@ -26,6 +35,10 @@ import { cn } from '@/lib/shadcn/utils';
 import {
   SidebarGroup,
   SidebarGroupContent,
+  SidebarInput,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from '@/components/ui/sidebar';
 
 interface TableInfo {
@@ -163,205 +176,212 @@ export function DataExplorer() {
           <span className="text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase">
             Обозреватель данных
           </span>
-          <span
+          <Badge
+            variant={source === 'live' ? 'default' : 'secondary'}
             className={cn(
-              'ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-semibold',
+              'ml-auto px-1.5 py-0.5 text-[10px] font-semibold rounded-full',
               source === 'live'
-                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                : 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20'
             )}
           >
             {source === 'live' ? 'В реальном времени' : 'Пример'}
-          </span>
+          </Badge>
         </div>
 
-      {/* Table selector */}
-      <div className="flex flex-wrap gap-1">
-        {tables.map((t) => (
-          <Button
-            key={t}
-            variant="ghost"
-            size="sm"
-            onClick={() => handleTableChange(t)}
-            className={cn(
-              'gap-1 px-2 py-1 text-[11px] font-medium',
-              activeTable === t
-                ? 'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
-                : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50',
-            )}
-          >
-            <Table2 className="size-3" />
-            {t}
-          </Button>
-        ))}
-      </div>
+        {/* Table selector */}
+        <SidebarMenu className="flex-row flex-wrap gap-1">
+          {tables.map((t) => (
+            <SidebarMenuItem key={t} className="list-none">
+              <SidebarMenuButton
+                size="sm"
+                isActive={activeTable === t}
+                onClick={() => handleTableChange(t)}
+                className="gap-1 px-2 py-1 text-[11px] font-medium h-auto"
+              >
+                <Table2 className="size-3" />
+                {t}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
 
-      {/* Search */}
-      <form onSubmit={handleSearchSubmit} className="relative">
-        <Search className="pointer-events-none absolute left-2 top-1/2 size-3 -translate-y-1/2 text-sidebar-foreground/40" />
-        <Input
-          type="text"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Поиск строк..."
-          className="border-sidebar-border/40 bg-sidebar-accent/20 py-1.5 pl-7 pr-2 text-xs placeholder:text-sidebar-foreground/30"
-        />
-      </form>
+        {/* Search */}
+        <form onSubmit={handleSearchSubmit} className="relative">
+          <Search className="pointer-events-none absolute left-2 top-1/2 size-3 -translate-y-1/2 text-sidebar-foreground/40" />
+          <SidebarInput
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Поиск строк..."
+            className="pl-7 pr-2 text-xs"
+          />
+        </form>
 
-      {/* Date range filter */}
-      {dateColumns.length > 0 && (
-        <div className="flex flex-col gap-1.5 rounded-md border border-sidebar-border/30 bg-sidebar-accent/10 p-2">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-medium text-sidebar-foreground/50 uppercase">Фильтр по дате</span>
-            <select
-              value={dateColumn ?? ''}
-              onChange={(e) => { setDateColumn(e.target.value || null); setPage(1); }}
-              className="ml-auto rounded border border-sidebar-border/30 bg-sidebar-accent/30 px-1.5 py-0.5 text-[10px] text-sidebar-foreground outline-none"
-            >
-              <option value="">—</option>
-              {dateColumns.map((col) => (
-                <option key={col} value={col}>{col}</option>
-              ))}
-            </select>
-          </div>
-          {dateColumn && (
-            <div className="flex items-center gap-1">
-              <Input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
-                className="border-sidebar-border/30 bg-sidebar-accent/20 px-1.5 py-1 text-[10px] [color-scheme:dark]"
-              />
-              <span className="text-[10px] text-sidebar-foreground/40">→</span>
-              <Input
-                type="date"
-                value={dateTo}
-                onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
-                className="border-sidebar-border/30 bg-sidebar-accent/20 px-1.5 py-1 text-[10px] [color-scheme:dark]"
-              />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="min-h-0 flex-1">
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="size-5 animate-spin text-sidebar-foreground/40" />
-          </div>
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-8">
-            <Database className="size-6 text-destructive/40" />
-            <p className="text-center text-xs text-destructive/70 leading-relaxed">{error}</p>
-          </div>
-        ) : data && data.columns.length > 0 ? (
-          <div className="overflow-hidden rounded-lg border border-sidebar-border/40">
-            <div className="overflow-x-auto">
-              <Table className="w-full text-xs">
-                <TableHeader>
-                  <TableRow className="border-b border-sidebar-border/20 bg-sidebar-accent/20 hover:bg-sidebar-accent/20">
-                    {data.columns.map((col) => (
-                      <TableHead key={col} className="px-2 py-1.5">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleSort(col)}
-                          className={cn(
-                            'gap-1 px-0 font-semibold',
-                            sort?.column === col
-                              ? 'text-sidebar-foreground'
-                              : 'text-sidebar-foreground/60 hover:text-sidebar-foreground',
-                          )}
-                        >
-                          {col}
-                          {sort?.column === col ? (
-                            sort.dir === 'asc' ? (
-                              <ArrowUpNarrowWide className="size-3 shrink-0" />
-                            ) : (
-                              <ArrowDownWideNarrow className="size-3 shrink-0" />
-                            )
-                          ) : (
-                            <ArrowUpDown className="size-3 shrink-0 opacity-0 group-hover:opacity-40" />
-                          )}
-                        </Button>
-                      </TableHead>
+        {/* Date range filter */}
+        {dateColumns.length > 0 && (
+          <Card className="border-sidebar-border/30 bg-sidebar-accent/10 shadow-none">
+            <CardContent className="flex flex-col gap-1.5 p-2">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-medium text-sidebar-foreground/50 uppercase">Фильтр по дате</span>
+                <Select
+                  value={dateColumn ?? ''}
+                  onValueChange={(val) => { setDateColumn(val || null); setPage(1); }}
+                >
+                  <SelectTrigger
+                    size="sm"
+                    className="ml-auto h-auto border-sidebar-border/30 bg-sidebar-accent/30 px-1.5 py-0.5 text-[10px] text-sidebar-foreground [&_svg]:size-3"
+                  >
+                    <SelectValue placeholder="—" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dateColumns.map((col) => (
+                      <SelectItem key={col} value={col} className="text-xs">
+                        {col}
+                      </SelectItem>
                     ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.rows.map((row, i) => (
-                    <TableRow
-                      key={i}
-                      className={cn(
-                        'border-b border-sidebar-border/10',
-                        i % 2 === 0 ? 'bg-sidebar-accent/10' : 'bg-transparent',
-                        'hover:bg-sidebar-accent/20',
-                      )}
-                    >
-                      {data.columns.map((col) => {
-                        const val = row[col];
-                        return (
-                          <TableCell
-                            key={col}
+                  </SelectContent>
+                </Select>
+              </div>
+              {dateColumn && (
+                <div className="flex items-center gap-1">
+                  <SidebarInput
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+                    className="px-1.5 py-1 text-[10px] [color-scheme:dark] h-auto"
+                  />
+                  <span className="text-[10px] text-sidebar-foreground/40">→</span>
+                  <SidebarInput
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+                    className="px-1.5 py-1 text-[10px] [color-scheme:dark] h-auto"
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Content */}
+        <div className="min-h-0 flex-1">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="size-5 animate-spin text-sidebar-foreground/40" />
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center gap-2 py-8">
+              <Database className="size-6 text-destructive/40" />
+              <p className="text-center text-xs text-destructive/70 leading-relaxed">{error}</p>
+            </div>
+          ) : data && data.columns.length > 0 ? (
+            <div className="overflow-hidden rounded-lg border border-sidebar-border/40">
+              <div className="overflow-x-auto">
+                <Table className="w-full text-xs">
+                  <TableHeader>
+                    <TableRow className="border-b border-sidebar-border/20 bg-sidebar-accent/20 hover:bg-sidebar-accent/20">
+                      {data.columns.map((col) => (
+                        <TableHead key={col} className="px-2 py-1.5">
+                          <Toggle
+                            size="sm"
+                            pressed={sort?.column === col}
+                            onPressedChange={() => handleSort(col)}
                             className={cn(
-                              'max-w-[160px] truncate px-2 py-1.5',
-                              isDateColumn(col, data.types)
-                                ? 'font-mono text-[10px] text-sidebar-foreground/60'
-                                : 'text-sidebar-foreground/80',
+                              '-ml-1 gap-1 px-1.5 font-semibold text-xs h-auto min-w-0',
+                              sort?.column === col
+                                ? 'text-sidebar-foreground'
+                                : 'text-sidebar-foreground/60 hover:text-sidebar-foreground',
                             )}
-                            title={String(val ?? '')}
                           >
-                            {formatCellValue(val)}
-                          </TableCell>
-                        );
-                      })}
+                            {col}
+                            {sort?.column === col ? (
+                              sort.dir === 'asc' ? (
+                                <ArrowUpNarrowWide className="size-3 shrink-0" />
+                              ) : (
+                                <ArrowDownWideNarrow className="size-3 shrink-0" />
+                              )
+                            ) : (
+                              <ArrowUpDown className="size-3 shrink-0 opacity-30" />
+                            )}
+                          </Toggle>
+                        </TableHead>
+                      ))}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {data.rows.map((row, i) => (
+                      <TableRow
+                        key={i}
+                        className={cn(
+                          'border-b border-sidebar-border/10',
+                          i % 2 === 0 ? 'bg-sidebar-accent/10' : 'bg-transparent',
+                          'hover:bg-sidebar-accent/20',
+                        )}
+                      >
+                        {data.columns.map((col) => {
+                          const val = row[col];
+                          return (
+                            <TableCell
+                              key={col}
+                              className={cn(
+                                'max-w-[160px] truncate px-2 py-1.5',
+                                isDateColumn(col, data.types)
+                                  ? 'font-mono text-[10px] text-sidebar-foreground/60'
+                                  : 'text-sidebar-foreground/80',
+                              )}
+                              title={String(val ?? '')}
+                            >
+                              {formatCellValue(val)}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          ) : data ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-12">
+              <Table2 className="size-6 text-sidebar-foreground/20" />
+              <p className="text-center text-xs text-sidebar-foreground/30 leading-relaxed">Данные не найдены</p>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Pagination */}
+        {data && data.total > PAGE_SIZE && (
+          <div className="flex items-center justify-between border-t border-sidebar-border/20 pt-2">
+            <span className="text-[10px] text-sidebar-foreground/40">
+              {data.total} {data.total === 1 ? 'строка' : data.total < 5 ? 'строки' : 'строк'}
+            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="rounded p-1"
+              >
+                <ChevronLeft className="size-3.5" />
+              </Button>
+              <span className="min-w-[4ch] text-center text-[10px] text-sidebar-foreground/50">
+                {page}/{totalPages}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="rounded p-1"
+              >
+                <ChevronRight className="size-3.5" />
+              </Button>
             </div>
           </div>
-        ) : data ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-12">
-            <Table2 className="size-6 text-sidebar-foreground/20" />
-            <p className="text-center text-xs text-sidebar-foreground/30 leading-relaxed">Данные не найдены</p>
-          </div>
-        ) : null}
-      </div>
-
-      {/* Pagination */}
-      {data && data.total > PAGE_SIZE && (
-        <div className="flex items-center justify-between border-t border-sidebar-border/20 pt-2">
-          <span className="text-[10px] text-sidebar-foreground/40">
-            {data.total} {data.total === 1 ? 'строка' : data.total < 5 ? 'строки' : 'строк'}
-          </span>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page <= 1}
-              className="rounded p-1"
-            >
-              <ChevronLeft className="size-3.5" />
-            </Button>
-            <span className="min-w-[4ch] text-center text-[10px] text-sidebar-foreground/50">
-              {page}/{totalPages}
-            </span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page >= totalPages}
-              className="rounded p-1"
-            >
-              <ChevronRight className="size-3.5" />
-            </Button>
-          </div>
-        </div>
-      )}
-    </SidebarGroupContent>
+        )}
+      </SidebarGroupContent>
     </SidebarGroup>
   );
 }
