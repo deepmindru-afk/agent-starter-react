@@ -174,7 +174,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
   useEffect(() => {
     if (room?.name) {
-      setRoomName(room.name());
+      setRoomName(room.name);
     }
   }, [room]);
 
