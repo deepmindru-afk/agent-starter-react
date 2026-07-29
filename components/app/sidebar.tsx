@@ -154,17 +154,17 @@ function SampleTable() {
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const room = useRoomContext();
-  const { agent } = useAgent();
+  //const { agent } = useAgent();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(false);
   const [models, setModels] = useState<Model[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [search, setSearch] = useState('');
   const [apiKey, setApiKey] = useState('');
-  const [showApiKey, setShowApiKey] = useState(false);
+  //const [showApiKey, setShowApiKey] = useState(false);
   const [apiEndpoint, setApiEndpoint] = useState('');
-  const [showApiEndpoint, setShowApiEndpoint] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  //const [showApiEndpoint, setShowApiEndpoint] = useState(false);
+  //const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const configSentRef = useRef('');
   const [showSampleTable, setShowSampleTable] = useState(false);
   const [activeTab, setActiveTab] = useState<'chat' | 'send_data'>('chat');

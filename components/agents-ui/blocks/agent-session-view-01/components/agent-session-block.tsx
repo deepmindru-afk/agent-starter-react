@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { AnimatePresence, type MotionProps, motion } from 'motion/react';
 import { useAgent, useSessionContext, useSessionMessages } from '@livekit/components-react';
 import { type RpcInvocationData } from 'livekit-client';
@@ -183,6 +183,7 @@ export function AgentSessionView_01({
   const session = useSessionContext();
   const { messages } = useSessionMessages(session);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [clearedAt, setClearedAt] = useState<number>(0);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { state: agentState } = useAgent();
 
