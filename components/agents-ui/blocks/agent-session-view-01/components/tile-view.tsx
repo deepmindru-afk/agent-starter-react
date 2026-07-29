@@ -137,10 +137,10 @@ export function TileLayout({
   const videoWidth = agentVideoTrack?.publication.dimensions?.width ?? 0;
   const videoHeight = agentVideoTrack?.publication.dimensions?.height ?? 0;
 
+  //<div className="pointer-events-none absolute inset-x-0 top-8 bottom-32 z-50 md:top-12 md:bottom-40">
+  //  <div className="relative mx-auto h-full max-w-2xl px-4 md:px-0">
   return (
-    //<>
-    //<div className="pointer-events-none absolute inset-x-0 top-8 bottom-32 z-50 md:top-12 md:bottom-40">
-    //  <div className="relative mx-auto h-full max-w-2xl px-4 md:px-0">
+    <>
     <div className="">
       <div className="relative mx-auto w-full max-w-5xl px-4 md:px-0">
         <div className={cn(tileViewClassNames.grid)}>
@@ -234,8 +234,7 @@ export function TileLayout({
                     height={videoHeight}
                     trackRef={agentVideoTrack}
                     onClick={() => handleZoom(agentVideoTrack)}
-                    //className={cn('cursor-pointer', chatOpen && 'size-[90px] object-cover')}
-                    className={cn(isChatOpen && 'size-[90px] object-cover')}
+                    className={cn('cursor-pointer', isChatOpen && 'size-[90px] object-cover')}
                   />
                 </motion.div>
               )}
@@ -323,6 +322,37 @@ export function TileLayout({
         )}
       </div>
     </div>
-
+      {zoomedTrackRef && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+          onClick={handleCloseZoom}
+        >
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className="relative max-h-[90vh] max-w-[90vw]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCloseZoom}
+              className="absolute -top-10 right-0 text-white hover:text-white/70"
+              aria-label="Close zoom"
+            >
+              <X className="size-6" />
+            </Button>
+            <VideoTrack
+              trackRef={zoomedTrackRef}
+              width={zoomedTrackRef.publication.dimensions?.width ?? 1280}
+              height={zoomedTrackRef.publication.dimensions?.height ?? 720}
+              className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain"
+            />
+          </motion.div>
+        </motion.div>
+      )}
+    </>
   );
 }
