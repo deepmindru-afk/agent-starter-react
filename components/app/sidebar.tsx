@@ -172,6 +172,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const [textData, setTextData] = useState('');
   const [roomName, setRoomName] = useState('');
 
+  useEffect(() => {
+    if (room?.name()) {
+      setRoomName(room.name());
+    }
+  }, [room]);
+
   const handleSendData = async () => {
     if (!textData) return;
     try {
