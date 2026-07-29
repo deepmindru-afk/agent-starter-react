@@ -5,6 +5,11 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/shadcn/utils';
+import {
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+} from '@/components/ui/sidebar';
 
 const DAYS_OF_WEEK = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
 
@@ -67,99 +72,101 @@ export function CalendarView() {
   });
 
   return (
-    <div className="select-none">
-      <div className="mb-1 flex items-center justify-between px-1">
-        <span className="text-xs font-semibold text-sidebar-foreground/70">{monthLabel}</span>
-        <div className="flex items-center gap-0.5">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={prevMonth}
-            className="rounded-md p-1"
-            aria-label="Previous month"
-          >
-            <ChevronLeft className="size-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setViewDate(new Date(today.getFullYear(), today.getMonth(), 1))}
-            className="rounded-md px-1.5 py-1 text-[10px] font-medium"
-            aria-label="Сегодня"
-          >
-            Сегодня
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={nextMonth}
-            className="rounded-md p-1"
-            aria-label="Next month"
-          >
-            <ChevronRight className="size-3.5" />
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-7 gap-0">
-        {DAYS_OF_WEEK.map((d) => (
-          <div
-            key={d}
-            className="py-1.5 text-center text-[10px] font-semibold tracking-wider text-sidebar-foreground/40 uppercase"
-          >
-            {d}
-          </div>
-        ))}
-        {weeks.map((week, wi) =>
-          week.map((day, di) => (
+    <SidebarGroup>
+      <SidebarGroupContent className="select-none">
+        <div className="mb-1 flex items-center justify-between px-1">
+          <span className="text-xs font-semibold text-sidebar-foreground/70">{monthLabel}</span>
+          <div className="flex items-center gap-0.5">
             <Button
-              key={`${wi}-${di}`}
               variant="ghost"
               size="icon"
-              disabled={day === null}
-              onClick={() => day && setSelectedDate(new Date(year, month, day))}
-              className={cn(
-                'mx-auto size-7 rounded-full text-[11px]',
-                day === null && 'pointer-events-none opacity-0',
-                !isSelected(day ?? 0) && 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                isSelected(day ?? 0) && 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold hover:bg-sidebar-accent',
-                isToday(day ?? 0) &&
-                  !isSelected(day ?? 0) &&
-                  'ring-1 ring-sidebar-foreground/30'
-              )}
+              onClick={prevMonth}
+              className="rounded-md p-1"
+              aria-label="Previous month"
             >
-              {day}
+              <ChevronLeft className="size-3.5" />
             </Button>
-          ))
-        )}
-      </div>
-
-      {selectedDate && (
-        <div className="mt-2 rounded-md border border-sidebar-border/30 bg-sidebar-accent/20 px-2.5 py-2">
-          <p className="text-[11px] text-sidebar-foreground/60">
-            Selected: <span className="font-semibold text-sidebar-foreground/80">
-              {selectedDate.toLocaleDateString(undefined, {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </span>
-          </p>
-          <Input
-            type="date"
-            value={selectedDate.toISOString().split('T')[0]}
-            onChange={(e) => {
-              const d = new Date(e.target.value + 'T00:00:00');
-              if (!isNaN(d.getTime())) {
-                setSelectedDate(d);
-                setViewDate(new Date(d.getFullYear(), d.getMonth(), 1));
-              }
-            }}
-            className="mt-1.5 border-sidebar-border/20 bg-sidebar-accent/30 px-2 py-1 text-[11px] [color-scheme:dark]"
-          />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewDate(new Date(today.getFullYear(), today.getMonth(), 1))}
+              className="rounded-md px-1.5 py-1 text-[10px] font-medium"
+              aria-label="Сегодня"
+            >
+              Сегодня
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={nextMonth}
+              className="rounded-md p-1"
+              aria-label="Next month"
+            >
+              <ChevronRight className="size-3.5" />
+            </Button>
+          </div>
         </div>
-      )}
-    </div>
+
+        <div className="grid grid-cols-7 gap-0">
+          {DAYS_OF_WEEK.map((d) => (
+            <div
+              key={d}
+              className="py-1.5 text-center text-[10px] font-semibold tracking-wider text-sidebar-foreground/40 uppercase"
+            >
+              {d}
+            </div>
+          ))}
+          {weeks.map((week, wi) =>
+            week.map((day, di) => (
+              <Button
+                key={`${wi}-${di}`}
+                variant="ghost"
+                size="icon"
+                disabled={day === null}
+                onClick={() => day && setSelectedDate(new Date(year, month, day))}
+                className={cn(
+                  'mx-auto size-7 rounded-full text-[11px]',
+                  day === null && 'pointer-events-none opacity-0',
+                  !isSelected(day ?? 0) && 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                  isSelected(day ?? 0) && 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold hover:bg-sidebar-accent',
+                  isToday(day ?? 0) &&
+                    !isSelected(day ?? 0) &&
+                    'ring-1 ring-sidebar-foreground/30'
+                )}
+              >
+                {day}
+              </Button>
+            ))
+          )}
+        </div>
+
+        {selectedDate && (
+          <div className="mt-2 rounded-md border border-sidebar-border/30 bg-sidebar-accent/20 px-2.5 py-2">
+            <p className="text-[11px] text-sidebar-foreground/60">
+              Selected: <span className="font-semibold text-sidebar-foreground/80">
+                {selectedDate.toLocaleDateString(undefined, {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </span>
+            </p>
+            <Input
+              type="date"
+              value={selectedDate.toISOString().split('T')[0]}
+              onChange={(e) => {
+                const d = new Date(e.target.value + 'T00:00:00');
+                if (!isNaN(d.getTime())) {
+                  setSelectedDate(d);
+                  setViewDate(new Date(d.getFullYear(), d.getMonth(), 1));
+                }
+              }}
+              className="mt-1.5 border-sidebar-border/20 bg-sidebar-accent/30 px-2 py-1 text-[11px] [color-scheme:dark]"
+            />
+          </div>
+        )}
+      </SidebarGroupContent>
+    </SidebarGroup>
   );
 }

@@ -23,6 +23,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { cn } from '@/lib/shadcn/utils';
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+} from '@/components/ui/sidebar';
 
 interface TableInfo {
   source: 'sample' | 'live';
@@ -151,24 +155,25 @@ export function DataExplorer() {
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
 
   return (
-    <div className="flex h-full flex-col gap-2">
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <Database className="size-3.5 text-sidebar-foreground/50" />
-        <span className="text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase">
-          Обозреватель данных
-        </span>
-        <span
-          className={cn(
-            'ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-semibold',
-            source === 'live'
-              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-              : 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
-          )}
-        >
-          {source === 'live' ? 'В реальном времени' : 'Пример'}
-        </span>
-      </div>
+    <SidebarGroup>
+      <SidebarGroupContent className="flex h-full flex-col gap-2">
+        {/* Header */}
+        <div className="flex items-center gap-2">
+          <Database className="size-3.5 text-sidebar-foreground/50" />
+          <span className="text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase">
+            Обозреватель данных
+          </span>
+          <span
+            className={cn(
+              'ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-semibold',
+              source === 'live'
+                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                : 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+            )}
+          >
+            {source === 'live' ? 'В реальном времени' : 'Пример'}
+          </span>
+        </div>
 
       {/* Table selector */}
       <div className="flex flex-wrap gap-1">
@@ -356,7 +361,8 @@ export function DataExplorer() {
           </div>
         </div>
       )}
-    </div>
+    </SidebarGroupContent>
+    </SidebarGroup>
   );
 }
 
