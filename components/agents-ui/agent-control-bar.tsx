@@ -101,8 +101,9 @@ function useCommands(): Command[] {
 }
 
 function getCommandFromText(text: string): string | null {
-  const match = text.match(/(?:^|\s)(\/[a-zA-Z]*)$/);
-  return match ? match[1] : null;
+  const matches = [...text.matchAll(/(?:^|\s)(\/[a-zA-Z]*)/g)];
+  if (matches.length === 0) return null;
+  return matches[matches.length - 1][1];
 }
 
 function getCommandText(text: string): string {
@@ -240,7 +241,7 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, onClear, className,
   }, [chatOpen]);
 
   return (
-    <div className={cn('mb-3 flex grow items-end gap-2 rounded-md pl-1 text-sm', className)}>
+    <div className={cn('relative mb-3 flex grow items-end gap-2 rounded-md pl-1 text-sm', className)}>
       <textarea
         autoFocus
         ref={inputRef}
@@ -262,6 +263,34 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, onClear, className,
       >
         {isSending ? <Loader className="animate-spin" /> : <SendHorizontal />}
       </Button>
+
+      {/* Slash command suggestion popover */}
+      {isCommandActive && (
+        <div
+          ref={listRef}
+          className="absolute bottom-full left-0 right-0 z-50 mb-1 max-h-48 overflow-y-auto rounded-md border bg-popover p-1 shadow-md"
+        >
+          {filteredCommands.map((cmd, i) => (
+            <button
+              key={cmd.command}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                handleSelectCommand(cmd);
+              }}
+              className={cn(
+                'flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none',
+                i === selectedIndex
+                  ? 'bg-accent text-accent-foreground'
+                  : 'text-popover-foreground hover:bg-accent/50'
+              )}
+            >
+              <CommandIcon className="size-3.5 shrink-0 opacity-60" />
+              <span className="font-medium">{cmd.command}</span>
+              <span className="text-muted-foreground ml-auto text-xs">{cmd.description}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -453,7 +482,7 @@ export function AgentControlBar({
         {...MOTION_PROPS}
         inert={!(isChatOpen || isChatOpenUncontrolled)}
         animate={isChatOpen || isChatOpenUncontrolled ? 'visible' : 'hidden'}
-        className="border-input/50 flex w-full items-start overflow-hidden border-b"
+        className="border-input/50 flex w-full items-start border-b"
       >
         <AgentChatInput
           chatOpen={isChatOpen || isChatOpenUncontrolled}
