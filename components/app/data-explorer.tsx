@@ -11,6 +11,7 @@ import {
   Loader2,
   Search,
   Table2,
+  Link as LinkIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +31,7 @@ interface TableInfo {
 }
 
 interface TableData {
-  source: 'sample' | 'live';
+  source: 'sample' | 'live' | 'external';
   columns: string[];
   types?: Record<string, string>;
   rows: Record<string, unknown>[];
@@ -60,11 +61,12 @@ export function DataExplorer() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [source, setSource] = useState<'sample' | 'live'>('sample');
+  const [source, setSource] = useState<'sample' | 'live' | 'external'>('sample');
   const [sort, setSort] = useState<SortState | null>(null);
   const [dateColumn, setDateColumn] = useState<string | null>(null);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [externalUrl, setExternalUrl] = useState('');
 
   // Detect available date columns from current data
   const dateColumns = useMemo(() => {
@@ -118,11 +120,55 @@ export function DataExplorer() {
   }, [activeTable, search, page, sort, dateColumn, dateFrom, dateTo]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!externalUrl) {
+      fetchData();
+    }
+  }, [fetchData, externalUrl]);
+
+  const fetchExternalData = async () => {
+    if (!externalUrl) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(externalUrl);
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      const json = await res.json();
+      
+      let rows: any[] = [];
+      if (Array.isArray(json)) {
+        rows = json;
+      } else if (json && typeof json === 'object') {
+        // Try to find an array property if the root is an object
+        const arrayKey = Object.keys(json).find(key => Array.isArray((json as any)[key]));
+        if (arrayKey) {
+          rows = (json as any)[arrayKey];
+        } else {
+          rows = [json];
+        }
+      }
+
+      if (rows.length === 0) throw new Error('JSON не содержит массива данных');
+
+      const columns = Object.keys(rows[0]);
+      setData({
+        source: 'external',
+        columns,
+        rows,
+        total: rows.length,
+        table: 'External URL',
+      });
+      setSource('external');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Ошибка при загрузке внешних данных');
+      setData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleTableChange = (table: string) => {
     setActiveTable(table);
+    setExternalUrl('');
     setPage(1);
     setSearch('');
     setSearchInput('');
@@ -163,11 +209,36 @@ export function DataExplorer() {
             'ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-semibold',
             source === 'live'
               ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+              : source === 'external'
+              ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
               : 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
           )}
         >
-          {source === 'live' ? 'В реальном времени' : 'Пример'}
+          {source === 'live' ? 'В реальном времени' : source === 'external' ? 'Внешний URL' : 'Пример'}
         </span>
+      </div>
+
+      {/* External URL input */}
+      <div className="flex gap-1.5">
+        <div className="relative flex-1">
+          <LinkIcon className="pointer-events-none absolute left-2 top-1/2 size-3 -translate-y-1/2 text-sidebar-foreground/40" />
+          <Input
+            type="text"
+            value={externalUrl}
+            onChange={(e) => setExternalUrl(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') fetchExternalData(); }}
+            placeholder="URL для получения JSON..."
+            className="border-sidebar-border/40 bg-sidebar-accent/20 py-1.5 pl-7 pr-2 text-xs placeholder:text-sidebar-foreground/30"
+          />
+        </div>
+        <Button 
+          size="sm" 
+          onClick={fetchExternalData} 
+          disabled={!externalUrl || loading}
+          className="h-8 px-2 text-[10px]"
+        >
+          {loading ? <Loader2 className="size-3 animate-spin" /> : 'Загрузить'}
+        </Button>
       </div>
 
       {/* Table selector */}
@@ -180,7 +251,7 @@ export function DataExplorer() {
             onClick={() => handleTableChange(t)}
             className={cn(
               'gap-1 px-2 py-1 text-[11px] font-medium',
-              activeTable === t
+              activeTable === t && !externalUrl
                 ? 'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
                 : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50',
             )}
@@ -239,139 +310,98 @@ export function DataExplorer() {
         </div>
       )}
 
-      {/* Content */}
-      <div className="min-h-0 flex-1">
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="size-5 animate-spin text-sidebar-foreground/40" />
+      {/* Main Content */}
+      <div className="relative flex-1 overflow-hidden rounded-md border border-sidebar-border/40 bg-sidebar-accent/10">
+        {loading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-sidebar-accent/50 backdrop-blur-sm">
+            <Loader2 className="size-4 animate-spin text-sidebar-foreground" />
           </div>
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-8">
-            <Database className="size-6 text-destructive/40" />
-            <p className="text-center text-xs text-destructive/70 leading-relaxed">{error}</p>
-          </div>
-        ) : data && data.columns.length > 0 ? (
-          <div className="overflow-hidden rounded-lg border border-sidebar-border/40">
-            <div className="overflow-x-auto">
-              <Table className="w-full text-xs">
-                <TableHeader>
-                  <TableRow className="border-b border-sidebar-border/20 bg-sidebar-accent/20 hover:bg-sidebar-accent/20">
-                    {data.columns.map((col) => (
-                      <TableHead key={col} className="px-2 py-1.5">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleSort(col)}
-                          className={cn(
-                            'gap-1 px-0 font-semibold',
-                            sort?.column === col
-                              ? 'text-sidebar-foreground'
-                              : 'text-sidebar-foreground/60 hover:text-sidebar-foreground',
-                          )}
-                        >
-                          {col}
-                          {sort?.column === col ? (
-                            sort.dir === 'asc' ? (
-                              <ArrowUpNarrowWide className="size-3 shrink-0" />
-                            ) : (
-                              <ArrowDownWideNarrow className="size-3 shrink-0" />
-                            )
-                          ) : (
-                            <ArrowUpDown className="size-3 shrink-0 opacity-0 group-hover:opacity-40" />
-                          )}
-                        </Button>
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.rows.map((row, i) => (
-                    <TableRow
-                      key={i}
-                      className={cn(
-                        'border-b border-sidebar-border/10',
-                        i % 2 === 0 ? 'bg-sidebar-accent/10' : 'bg-transparent',
-                        'hover:bg-sidebar-accent/20',
-                      )}
-                    >
-                      {data.columns.map((col) => {
-                        const val = row[col];
-                        return (
-                          <TableCell
-                            key={col}
-                            className={cn(
-                              'max-w-[160px] truncate px-2 py-1.5',
-                              isDateColumn(col, data.types)
-                                ? 'font-mono text-[10px] text-sidebar-foreground/60'
-                                : 'text-sidebar-foreground/80',
-                            )}
-                            title={String(val ?? '')}
-                          >
-                            {formatCellValue(val)}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+        )}
+
+        {error && (
+          <div className="flex h-full items-center justify-center p-4 text-center">
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-medium text-destructive">{error}</span>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={externalUrl ? fetchExternalData : fetchData}
+                className="mx-auto h-7 text-[10px]"
+              >
+                Повторить
+              </Button>
             </div>
           </div>
-        ) : data ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-12">
-            <Table2 className="size-6 text-sidebar-foreground/20" />
-            <p className="text-center text-xs text-sidebar-foreground/30 leading-relaxed">Данные не найдены</p>
+        )}
+
+        {!error && data && (
+          <div className="h-full overflow-auto">
+            <Table>
+              <TableHeader className="sticky top-0 bg-sidebar-accent z-10">
+                <TableRow className="border-sidebar-border/40">
+                  {data.columns.map((col) => (
+                    <TableHead
+                      key={col}
+                      onClick={() => handleSort(col)}
+                      className={cn(
+                        'cursor-pointer px-2 py-1 text-left text-[10px] font-semibold text-sidebar-foreground/70 hover:text-sidebar-foreground',
+                        sort?.column === col && 'text-sidebar-foreground'
+                      )}
+                    >
+                      <div className="flex items-center gap-1">
+                        {col}
+                        {sort?.column === col && (
+                          sort.dir === 'asc' ? <ArrowUpNarrowWide className="size-2.5" /> : <ArrowDownWideNarrow className="size-2.5" />
+                        )}
+                      </div>
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((row, i) => (
+                  <TableRow key={i} className="border-sidebar-border/20 hover:bg-sidebar-accent/30">
+                    {data.columns.map((col) => (
+                      <TableCell key={col} className="px-2 py-1 text-[10px] text-sidebar-foreground/80">
+                        {typeof row[col] === 'object' ? JSON.stringify(row[col]) : String(row[col] ?? '')}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-        ) : null}
+        )}
       </div>
 
       {/* Pagination */}
-      {data && data.total > PAGE_SIZE && (
-        <div className="flex items-center justify-between border-t border-sidebar-border/20 pt-2">
-          <span className="text-[10px] text-sidebar-foreground/40">
-            {data.total} {data.total === 1 ? 'строка' : data.total < 5 ? 'строки' : 'строк'}
+      {data && totalPages > 1 && (
+        <div className="flex items-center justify-between px-1">
+          <span className="text-[10px] text-sidebar-foreground/50">
+            Страница {page} из {totalPages} ({data.total} строк)
           </span>
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page <= 1}
-              className="rounded p-1"
+              disabled={page === 1}
+              className="h-6 w-6 p-0"
             >
-              <ChevronLeft className="size-3.5" />
+              <ChevronLeft className="size-3" />
             </Button>
-            <span className="min-w-[4ch] text-center text-[10px] text-sidebar-foreground/50">
-              {page}/{totalPages}
-            </span>
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page >= totalPages}
-              className="rounded p-1"
+              disabled={page === totalPages}
+              className="h-6 w-6 p-0"
             >
-              <ChevronRight className="size-3.5" />
+              <ChevronRight className="size-3" />
             </Button>
           </div>
         </div>
       )}
     </div>
   );
-}
-
-function formatCellValue(value: unknown): string {
-  if (value === null || value === undefined) return '—';
-  if (typeof value === 'boolean') return value ? '✓' : '✗';
-  if (typeof value === 'number') {
-    if (Number.isInteger(value)) return value.toLocaleString();
-    return value.toFixed(2);
-  }
-  if (typeof value === 'string' && !isNaN(Date.parse(value)) && value.includes('T')) {
-    const d = new Date(value);
-    return d.toLocaleString('ru-RU', {
-      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-    });
-  }
-  return String(value);
 }
