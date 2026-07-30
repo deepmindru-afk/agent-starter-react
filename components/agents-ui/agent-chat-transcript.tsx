@@ -135,7 +135,10 @@ export function AgentChatTranscript({
                         <BubbleContent>
                           <Streamdown
   components={{
-    img: ({ node, ...props }) => <img {...props} alt={props.alt || ''} />,
+    img: ({ node, src, alt, ...props }) => {
+      console.log('Streamdown img src:', src); // Debug log
+      return <img src={String(src)} alt={alt || ''} {...props} />;
+    },
   }}
 >
   {message}
