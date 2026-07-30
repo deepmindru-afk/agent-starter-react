@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export const revalidate = 0;
-export const runtime = 'nodejs';
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 interface SampleRow {
   [key: string]: unknown;
@@ -16,15 +11,6 @@ interface SampleTable {
   types: Record<string, string>;
   rows: SampleRow[];
 }
-
-interface PgColumn {
-  column_name: string;
-  data_type: string;
-}
-
-// ---------------------------------------------------------------------------
-// Sample data (fallback)
-// ---------------------------------------------------------------------------
 
 const sampleData: Record<string, SampleTable> = {
   tasks: {
@@ -76,10 +62,6 @@ const sampleTables = Object.keys(sampleData);
 
 const DATABASE_URL = process.env.DATABASE_URL;
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 function isDateValue(v: unknown): boolean {
   if (typeof v !== 'string') return false;
   return !isNaN(Date.parse(v));
@@ -90,165 +72,6 @@ function parseDateSafe(v: unknown): Date | null {
   const d = new Date(v);
   return isNaN(d.getTime()) ? null : d;
 }
-
-/** Infer column types from a row sample. */
-function inferTypes(rows: SampleRow[]): Record<string, string> {
-  if (rows.length === 0) return {};
-  const types: Record<string, string> = {};
-  for (const col of Object.keys(rows[0])) {
-    const v = rows[0][col];
-    if (typeof v === 'number') types[col] = Number.isInteger(v) ? 'integer' : 'number';
-    else if (typeof v === 'boolean') types[col] = 'boolean';
-    else if (isDateValue(v)) types[col] = 'datetime';
-    else types[col] = 'string';
-  }
-  return types;
-}
-
-// ---------------------------------------------------------------------------
-// PostgreSQL helpers (uses `pg` package)
-// ---------------------------------------------------------------------------
-
-/** Map PostgreSQL data types to our simplified types. */
-function pgTypeToSimple(pgType: string): string {
-  const t = pgType.toLowerCase();
-  if (t.includes('int') || t === 'bigint' || t === 'smallint' || t === 'serial') return 'integer';
-  if (t.includes('double') || t.includes('float') || t.includes('numeric') || t === 'real' || t === 'money') return 'number';
-  if (t === 'boolean') return 'boolean';
-  if (t.includes('timestamp') || t.includes('date') || t === 'time') return 'datetime';
-  return 'string';
-}
-
-/** Get list of table names from PostgreSQL. */
-async function fetchPgTables(connectionString: string): Promise<string[]> {
-  const { Pool } = await import('pg');
-  const pool = new Pool({ connectionString, max: 1, idleTimeoutMillis: 5000 });
-  try {
-    const res = await pool.query(`
-      SELECT table_name
-      FROM information_schema.tables
-      WHERE table_schema = 'public'
-        AND table_type = 'BASE TABLE'
-      ORDER BY table_name
-    `);
-    return res.rows.map((r: { table_name: string }) => r.table_name);
-  } finally {
-    await pool.end();
-  }
-}
-
-/**
- * Fetch paginated / sorted / filtered data from a PostgreSQL table.
- * Builds a safe parameterised query.
- */
-async function fetchPgTableData(
-  connectionString: string,
-  table: string,
-  opts: {
-    search?: string;
-    page?: number;
-    pageSize?: number;
-    sort?: string;
-    sortDir?: string;
-    dateColumn?: string;
-    dateFrom?: string;
-    dateTo?: string;
-  },
-): Promise<{ columns: string[]; types: Record<string, string>; rows: SampleRow[]; total: number }> {
-  const { Pool } = await import('pg');
-  const pool = new Pool({ connectionString, max: 1, idleTimeoutMillis: 10_000 });
-
-  try {
-    // 1. Get column metadata (use the same pool)
-    const colRes = await pool.query(
-      `SELECT column_name, data_type
-       FROM information_schema.columns
-       WHERE table_schema = 'public' AND table_name = $1
-       ORDER BY ordinal_position`,
-      [table],
-    );
-    const columnsInfo = colRes.rows as PgColumn[];
-    const columns = columnsInfo.map((c) => c.column_name);
-    const types: Record<string, string> = {};
-    for (const c of columnsInfo) {
-      types[c.column_name] = pgTypeToSimple(c.data_type);
-    }
-
-    // 2. Quote table and column names safely
-    const safeTable = `"${table.replace(/"/g, '""')}"`;
-    const safeCols = columns.map((c) => `"${c.replace(/"/g, '""')}"`).join(', ');
-
-    // 3. Build WHERE clauses
-    const whereClauses: string[] = [];
-    const params: unknown[] = [];
-    let paramIdx = 0;
-
-    // Date range filter
-    if (opts.dateColumn && (opts.dateFrom || opts.dateTo)) {
-      const safeDateCol = `"${opts.dateColumn.replace(/"/g, '""')}"`;
-      if (opts.dateFrom) {
-        paramIdx++;
-        whereClauses.push(`${safeDateCol} >= $${paramIdx}::timestamp`);
-        params.push(opts.dateFrom);
-      }
-      if (opts.dateTo) {
-        paramIdx++;
-        // Include the full "to" date (end of day)
-        whereClauses.push(`${safeDateCol} <= $${paramIdx}::timestamp`);
-        params.push(opts.dateTo);
-      }
-    }
-
-    // Search filter – cast every column to text and do a case-insensitive search
-    if (opts.search) {
-      const searchPattern = `%${opts.search}%`;
-      const searchClauses = columns.map((c) => {
-        paramIdx++;
-        const safeC = `"${c.replace(/"/g, '""')}"`;
-        return `CAST(${safeC} AS TEXT) ILIKE $${paramIdx}`;
-      });
-      whereClauses.push(`(${searchClauses.join(' OR ')})`);
-      // Push the search param for each column
-      for (let i = 0; i < columns.length; i++) {
-        params.push(searchPattern);
-      }
-    }
-
-    const whereSQL = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
-
-    // 4. Count total
-    const countQuery = `SELECT COUNT(*) AS cnt FROM ${safeTable} ${whereSQL}`;
-    const countRes = await pool.query(countQuery, params);
-    const total = parseInt(countRes.rows[0].cnt, 10);
-
-    // 5. Ordering
-    let orderSQL = '';
-    if (opts.sort) {
-      const safeSortCol = `"${opts.sort.replace(/"/g, '""')}"`;
-      const dir = opts.sortDir === 'desc' ? 'DESC' : 'ASC';
-      orderSQL = `ORDER BY ${safeSortCol} ${dir} NULLS LAST`;
-    }
-
-    // 6. Pagination
-    const safePage = opts.page && opts.page > 0 ? opts.page : 1;
-    const safePageSize = opts.pageSize && opts.pageSize > 0 ? opts.pageSize : 15;
-    const offset = (safePage - 1) * safePageSize;
-
-    const dataQuery = `SELECT ${safeCols} FROM ${safeTable} ${whereSQL} ${orderSQL} LIMIT $${paramIdx + 1} OFFSET $${paramIdx + 2}`;
-    params.push(safePageSize, offset);
-
-    const dataRes = await pool.query(dataQuery, params);
-    const rows = dataRes.rows as SampleRow[];
-
-    return { columns, types, rows, total };
-  } finally {
-    await pool.end();
-  }
-}
-
-// ---------------------------------------------------------------------------
-// External API proxy (existing DATABASE_URL pattern)
-// ---------------------------------------------------------------------------
 
 async function fetchLiveTables(): Promise<string[]> {
   const url = DATABASE_URL!;
@@ -300,15 +123,20 @@ async function fetchLiveTableData(
   if (Array.isArray(body)) {
     const rows = body as SampleRow[];
     const columns = rows.length > 0 ? Object.keys(rows[0]) : [];
-    const types = inferTypes(rows);
+    const types: Record<string, string> = {};
+    if (rows.length > 0) {
+      for (const col of columns) {
+        const v = rows[0][col];
+        if (typeof v === 'number') types[col] = Number.isInteger(v) ? 'integer' : 'number';
+        else if (typeof v === 'boolean') types[col] = 'boolean';
+        else if (isDateValue(v)) types[col] = 'datetime';
+        else types[col] = 'string';
+      }
+    }
     return { columns, types, rows, total: rows.length };
   }
   return { columns: [], types: {}, rows: [], total: 0 };
 }
-
-// ---------------------------------------------------------------------------
-// Sample data helpers (filter, sort, paginate)
-// ---------------------------------------------------------------------------
 
 function applyDateFilter(rows: SampleRow[], column: string, dateFrom?: string, dateTo?: string): SampleRow[] {
   let filtered = rows;
@@ -340,23 +168,22 @@ function applySort(rows: SampleRow[], column: string, dir: 'asc' | 'desc'): Samp
     if (va === null || va === undefined) return 1;
     if (vb === null || vb === undefined) return -1;
 
+    // Date comparison
     const da = parseDateSafe(va);
     const db = parseDateSafe(vb);
     if (da && db) return dir === 'asc' ? da.getTime() - db.getTime() : db.getTime() - da.getTime();
 
+    // Numeric comparison
     if (typeof va === 'number' && typeof vb === 'number') {
       return dir === 'asc' ? va - vb : vb - va;
     }
 
+    // String comparison
     const sa = String(va);
     const sb = String(vb);
     return dir === 'asc' ? sa.localeCompare(sb) : sb.localeCompare(sa);
   });
 }
-
-// ---------------------------------------------------------------------------
-// Route: GET /api/data/explore
-// ---------------------------------------------------------------------------
 
 export async function GET(request: NextRequest) {
   try {
@@ -370,28 +197,7 @@ export async function GET(request: NextRequest) {
     const dateColumn = searchParams.get('dateColumn') || undefined;
     const dateFrom = searchParams.get('dateFrom') || undefined;
     const dateTo = searchParams.get('dateTo') || undefined;
-    const connectionString = searchParams.get('connectionString') || undefined;
 
-    // ── User-provided PostgreSQL connection ──────────────────────────────
-    if (connectionString) {
-      try {
-        if (!table) {
-          const tables = await fetchPgTables(connectionString);
-          return NextResponse.json({ source: 'live', tables });
-        }
-        const data = await fetchPgTableData(connectionString, table, {
-          search, page, pageSize, sort, sortDir, dateColumn, dateFrom, dateTo,
-        });
-        return NextResponse.json({
-          source: 'live', ...data, table,
-        });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Connection failed';
-        return NextResponse.json({ error: `PostgreSQL: ${message}` }, { status: 502 });
-      }
-    }
-
-    // ── DATABASE_URL proxy (env var) ─────────────────────────────────────
     if (DATABASE_URL) {
       try {
         if (!table) {
@@ -404,13 +210,13 @@ export async function GET(request: NextRequest) {
         });
       } catch {
         return NextResponse.json(
-          { error: 'Failed to connect to the external database proxy. Check DATABASE_URL.' },
+          { error: 'Failed to connect to the external database. Check DATABASE_URL.' },
           { status: 502 },
         );
       }
     }
 
-    // ── Sample data fallback ─────────────────────────────────────────────
+    // Sample data fallback
     if (!table) {
       return NextResponse.json({ source: 'sample', tables: sampleTables });
     }
@@ -422,12 +228,12 @@ export async function GET(request: NextRequest) {
 
     let filtered = sample.rows;
 
-    // Date range filter
+    // Apply date range filter
     if ((dateFrom || dateTo) && dateColumn) {
       filtered = applyDateFilter(filtered, dateColumn, dateFrom, dateTo);
     }
 
-    // Search filter
+    // Apply search filter
     if (search) {
       const q = search.toLowerCase();
       filtered = filtered.filter((row) =>
@@ -435,14 +241,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Sort
+    // Apply sorting
     if (sort && sortDir) {
       filtered = applySort(filtered, sort, sortDir);
     }
 
     const total = filtered.length;
     const safePage = page && page > 0 ? page : 1;
-    const safePageSize = pageSize && pageSize > 0 ? pageSize : 15;
+    const safePageSize = pageSize && pageSize > 0 ? pageSize : 50;
     const start = (safePage - 1) * safePageSize;
     const paged = filtered.slice(start, start + safePageSize);
 
