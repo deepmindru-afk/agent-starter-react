@@ -1,16 +1,22 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowDownWideNarrow,
   ArrowUpDown,
   ArrowUpNarrowWide,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Database,
+  DatabaseZap,
   Loader2,
+  PlugIcon,
+  PlugZapIcon,
   Search,
   Table2,
+  XCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +37,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/shadcn/utils';
 import {
   SidebarGroup,
@@ -40,6 +47,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 interface TableInfo {
   source: 'sample' | 'live';
@@ -60,7 +71,15 @@ interface SortState {
   dir: 'asc' | 'desc';
 }
 
-const PAGE_SIZE = 15;
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const PAGE_SIZES = [10, 15, 25, 50, 100] as const;
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 function isDateColumn(col: string, types?: Record<string, string>): boolean {
   if (types?.[col] === 'datetime' || types?.[col] === 'date' || types?.[col] === 'timestamp') return true;
@@ -68,13 +87,60 @@ function isDateColumn(col: string, types?: Record<string, string>): boolean {
   return lower.includes('date') || lower.includes('_at') || lower === 'timestamp';
 }
 
+function formatCellValue(value: unknown): string {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'boolean') return value ? '✓' : '✗';
+  if (typeof value === 'number') {
+    if (Number.isInteger(value)) return value.toLocaleString();
+    return value.toFixed(2);
+  }
+  if (typeof value === 'string' && !isNaN(Date.parse(value)) && value.includes('T')) {
+    const d = new Date(value);
+    return d.toLocaleString('ru-RU', {
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+    });
+  }
+  return String(value);
+}
+
+/** Get a human-readable label for a connection string (masked). */
+function maskConnectionString(cs: string): string {
+  try {
+    const url = new URL(cs);
+    const host = url.hostname || 'localhost';
+    const db = (url.pathname || '').replace(/^\//, '') || 'unknown';
+    return `${host}/${db}`;
+  } catch {
+    return cs.length > 30 ? cs.slice(0, 27) + '…' : cs;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 export function DataExplorer() {
+  // Table state
   const [tables, setTables] = useState<string[]>([]);
   const [activeTable, setActiveTable] = useState<string>('');
   const [data, setData] = useState<TableData | null>(null);
+
+  // Connection state
+  const [connectionString, setConnectionString] = useState('');
+  const [storedConnection, setStoredConnection] = useState(''); // actually sent to API
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [connectError, setConnectError] = useState<string | null>(null);
+
+  // Search
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
+
+  // Pagination
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
+  const [pageInput, setPageInput] = useState('1');
+
+  // Misc
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<'sample' | 'live'>('sample');
@@ -83,13 +149,23 @@ export function DataExplorer() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
+  const connectionInputRef = useRef<HTMLInputElement>(null);
+
   // Detect available date columns from current data
   const dateColumns = useMemo(() => {
     if (!data?.columns) return [];
     return data.columns.filter((col) => isDateColumn(col, data.types));
   }, [data]);
 
-  // Fetch table list on mount
+  // Total pages derived from data
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / pageSize)) : 1;
+
+  // Sync pageInput when page changes externally
+  useEffect(() => {
+    setPageInput(String(page));
+  }, [page]);
+
+  // ── Initial data load (sample) ──────────────────────────────────────────
   useEffect(() => {
     fetch('/api/data/explore')
       .then((r) => r.json())
@@ -101,13 +177,17 @@ export function DataExplorer() {
       .catch(() => setError('Не удалось загрузить таблицы'));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fetch table data
+  // ── Fetch table data ────────────────────────────────────────────────────
   const fetchData = useCallback(async () => {
     if (!activeTable) return;
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ table: activeTable, page: String(page), pageSize: String(PAGE_SIZE) });
+      const params = new URLSearchParams({
+        table: activeTable,
+        page: String(page),
+        pageSize: String(pageSize),
+      });
       if (search) params.set('search', search);
       if (sort) {
         params.set('sort', sort.column);
@@ -118,6 +198,10 @@ export function DataExplorer() {
         if (dateFrom) params.set('dateFrom', dateFrom);
         if (dateTo) params.set('dateTo', dateTo);
       }
+      if (storedConnection) {
+        params.set('connectionString', storedConnection);
+      }
+
       const res = await fetch(`/api/data/explore?${params}`);
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}));
@@ -132,12 +216,83 @@ export function DataExplorer() {
     } finally {
       setLoading(false);
     }
-  }, [activeTable, search, page, sort, dateColumn, dateFrom, dateTo]);
+  }, [activeTable, search, page, pageSize, sort, dateColumn, dateFrom, dateTo, storedConnection]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
+  // ── Connect to PostgreSQL ───────────────────────────────────────────────
+  const handleConnect = useCallback(async () => {
+    const cs = connectionString.trim();
+    if (!cs) return;
+
+    setIsConnecting(true);
+    setConnectError(null);
+    setData(null);
+    setActiveTable('');
+
+    try {
+      const params = new URLSearchParams({ connectionString: cs });
+      const res = await fetch(`/api/data/explore?${params}`);
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.error || `Connection failed (${res.status})`);
+      }
+      const info: TableInfo = await res.json();
+      setTables(info.tables);
+      setSource('live');
+      setStoredConnection(cs);
+      if (info.tables.length > 0) {
+        setActiveTable(info.tables[0]);
+        setPage(1);
+      } else {
+        setTables([]);
+        setData(null);
+      }
+    } catch (e) {
+      setConnectError(e instanceof Error ? e.message : 'Connection failed');
+      setTables([]);
+      setStoredConnection('');
+    } finally {
+      setIsConnecting(false);
+    }
+  }, [connectionString]);
+
+  // Connect on Enter key
+  const handleConnectKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleConnect();
+    }
+  };
+
+  // ── Disconnect ──────────────────────────────────────────────────────────
+  const handleDisconnect = useCallback(() => {
+    setStoredConnection('');
+    setConnectionString('');
+    setConnectError(null);
+    setData(null);
+    setActiveTable('');
+    setPage(1);
+    setSearch('');
+    setSearchInput('');
+    setSort(null);
+    setDateColumn(null);
+    setDateFrom('');
+    setDateTo('');
+
+    // Reload sample tables
+    fetch('/api/data/explore')
+      .then((r) => r.json())
+      .then((info: TableInfo) => {
+        setTables(info.tables);
+        setSource(info.source);
+        if (info.tables.length > 0) setActiveTable(info.tables[0]);
+      })
+      .catch(() => setError('Не удалось загрузить таблицы'));
+  }, []);
+
+  // ── Handlers ────────────────────────────────────────────────────────────
   const handleTableChange = (table: string) => {
     setActiveTable(table);
     setPage(1);
@@ -165,60 +320,170 @@ export function DataExplorer() {
     setPage(1);
   };
 
-  const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
+  const handlePageSizeChange = (newSize: string) => {
+    setPageSize(Number(newSize));
+    setPage(1);
+  };
 
+  const handlePageInputSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const p = parseInt(pageInput, 10);
+    if (!isNaN(p) && p >= 1 && p <= totalPages) {
+      setPage(p);
+    } else {
+      setPageInput(String(page));
+    }
+  };
+
+  const goToFirstPage = () => setPage(1);
+  const goToLastPage = () => setPage(totalPages);
+  const goToPrevPage = () => setPage((p) => Math.max(1, p - 1));
+  const goToNextPage = () => setPage((p) => Math.min(totalPages, p + 1));
+
+  const isLive = source === 'live';
+
+  // ── Render ──────────────────────────────────────────────────────────────
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex h-full flex-col gap-2">
-        {/* Header */}
+        {/* ── Header ──────────────────────────────────────────────────── */}
         <div className="flex items-center gap-2">
           <Database className="size-3.5 text-sidebar-foreground/50" />
           <span className="text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase">
             Обозреватель данных
           </span>
-          <Badge
-            variant={source === 'live' ? 'default' : 'secondary'}
-            className={cn(
-              'ml-auto px-1.5 py-0.5 text-[10px] font-semibold rounded-full',
-              source === 'live'
-                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20'
-            )}
-          >
-            {source === 'live' ? 'В реальном времени' : 'Пример'}
-          </Badge>
+          {storedConnection ? (
+            <Badge
+              variant="default"
+              className="ml-auto px-1.5 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+            >
+              PostgreSQL
+            </Badge>
+          ) : (
+            <Badge
+              variant={isLive ? 'default' : 'secondary'}
+              className={cn(
+                'ml-auto px-1.5 py-0.5 text-[10px] font-semibold rounded-full',
+                isLive
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                  : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20',
+              )}
+            >
+              {isLive ? 'В реальном времени' : 'Пример'}
+            </Badge>
+          )}
         </div>
 
-        {/* Table selector */}
-        <SidebarMenu className="flex-row flex-wrap gap-1">
-          {tables.map((t) => (
-            <SidebarMenuItem key={t} className="list-none">
-              <SidebarMenuButton
-                size="sm"
-                isActive={activeTable === t}
-                onClick={() => handleTableChange(t)}
-                className="gap-1 px-2 py-1 text-[11px] font-medium h-auto"
-              >
-                <Table2 className="size-3" />
-                {t}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        {/* ── PostgreSQL Connection Input ─────────────────────────────── */}
+        <Card className="border-sidebar-border/30 bg-sidebar-accent/10 shadow-none">
+          <CardContent className="flex flex-col gap-1.5 p-2">
+            <div className="flex items-center gap-1.5">
+              <DatabaseZap className="size-3 text-sidebar-foreground/50" />
+              <span className="text-[10px] font-medium text-sidebar-foreground/50 uppercase">
+                PostgreSQL
+              </span>
+              {storedConnection && (
+                <span className="ml-auto text-[9px] text-sidebar-foreground/40 truncate max-w-[100px]">
+                  {maskConnectionString(storedConnection)}
+                </span>
+              )}
+            </div>
 
-        {/* Search */}
-        <form onSubmit={handleSearchSubmit} className="relative">
-          <Search className="pointer-events-none absolute left-2 top-1/2 size-3 -translate-y-1/2 text-sidebar-foreground/40" />
-          <SidebarInput
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Поиск строк..."
-            className="pl-7 pr-2 text-xs"
-          />
-        </form>
+            {storedConnection ? (
+              <div className="flex items-center gap-1">
+                <div className="flex-1 truncate rounded bg-sidebar-accent/30 px-2 py-1 text-[10px] font-mono text-sidebar-foreground/60">
+                  {maskConnectionString(storedConnection)}
+                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleDisconnect}
+                      className="size-5 rounded p-0.5 text-destructive/60 hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <PlugZapIcon className="size-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-[10px]">
+                    Отключиться
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                <SidebarInput
+                  ref={connectionInputRef}
+                  type="text"
+                  value={connectionString}
+                  onChange={(e) => setConnectionString(e.target.value)}
+                  onKeyDown={handleConnectKeyDown}
+                  placeholder="postgresql://user:pass@host:5432/db"
+                  className="flex-1 px-1.5 py-1 text-[10px] font-mono h-auto"
+                />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleConnect}
+                      disabled={isConnecting || !connectionString.trim()}
+                      className="size-5 rounded p-0.5 text-sidebar-foreground/50 hover:text-sidebar-foreground"
+                    >
+                      {isConnecting ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : (
+                        <PlugIcon className="size-3" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-[10px]">
+                    Подключиться
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            )}
 
-        {/* Date range filter */}
+            {connectError && (
+              <p className="text-[9px] text-destructive/70 leading-tight">{connectError}</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* ── Table Selector ──────────────────────────────────────────── */}
+        {tables.length > 0 && (
+          <SidebarMenu className="flex-row flex-wrap gap-1">
+            {tables.map((t) => (
+              <SidebarMenuItem key={t} className="list-none">
+                <SidebarMenuButton
+                  size="sm"
+                  isActive={activeTable === t}
+                  onClick={() => handleTableChange(t)}
+                  className="gap-1 px-2 py-1 text-[11px] font-medium h-auto"
+                >
+                  <Table2 className="size-3" />
+                  {t}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        )}
+
+        {/* ── Search ─────────────────────────────────────────────────── */}
+        {data && (
+          <form onSubmit={handleSearchSubmit} className="relative">
+            <Search className="pointer-events-none absolute left-2 top-1/2 size-3 -translate-y-1/2 text-sidebar-foreground/40" />
+            <SidebarInput
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Поиск строк..."
+              className="pl-7 pr-2 text-xs"
+            />
+          </form>
+        )}
+
+        {/* ── Date range filter ──────────────────────────────────────── */}
         {dateColumns.length > 0 && (
           <Card className="border-sidebar-border/30 bg-sidebar-accent/10 shadow-none">
             <CardContent className="flex flex-col gap-1.5 p-2">
@@ -264,7 +529,7 @@ export function DataExplorer() {
           </Card>
         )}
 
-        {/* Content */}
+        {/* ── Content ────────────────────────────────────────────────── */}
         <div className="min-h-0 flex-1">
           {loading ? (
             <div className="flex items-center justify-center py-12">
@@ -272,7 +537,7 @@ export function DataExplorer() {
             </div>
           ) : error ? (
             <div className="flex flex-col items-center justify-center gap-2 py-8">
-              <Database className="size-6 text-destructive/40" />
+              <XCircle className="size-6 text-destructive/40" />
               <p className="text-center text-xs text-destructive/70 leading-relaxed">{error}</p>
             </div>
           ) : data && data.columns.length > 0 ? (
@@ -347,57 +612,135 @@ export function DataExplorer() {
               <Table2 className="size-6 text-sidebar-foreground/20" />
               <p className="text-center text-xs text-sidebar-foreground/30 leading-relaxed">Данные не найдены</p>
             </div>
+          ) : tables.length === 0 && !storedConnection ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-12">
+              <Database className="size-6 text-sidebar-foreground/20" />
+              <p className="text-center text-xs text-sidebar-foreground/30 leading-relaxed">
+                Подключитесь к PostgreSQL или используйте примеры данных
+              </p>
+            </div>
           ) : null}
         </div>
 
-        {/* Pagination */}
-        {data && data.total > PAGE_SIZE && (
-          <div className="flex items-center justify-between border-t border-sidebar-border/20 pt-2">
-            <span className="text-[10px] text-sidebar-foreground/40">
-              {data.total} {data.total === 1 ? 'строка' : data.total < 5 ? 'строки' : 'строк'}
-            </span>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="rounded p-1"
-              >
-                <ChevronLeft className="size-3.5" />
-              </Button>
-              <span className="min-w-[4ch] text-center text-[10px] text-sidebar-foreground/50">
-                {page}/{totalPages}
+        {/* ── Pagination ─────────────────────────────────────────────── */}
+        {data && data.total > 0 && (
+          <div className="flex flex-col gap-1.5 border-t border-sidebar-border/20 pt-2">
+            {/* Row count + Page size */}
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-sidebar-foreground/40">
+                {data.total} {data.total === 1 ? 'строка' : data.total < 5 ? 'строки' : 'строк'}
               </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}
-                className="rounded p-1"
-              >
-                <ChevronRight className="size-3.5" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] text-sidebar-foreground/40">Показывать по</span>
+                <Select
+                  value={String(pageSize)}
+                  onValueChange={handlePageSizeChange}
+                >
+                  <SelectTrigger
+                    size="sm"
+                    className="h-auto border-sidebar-border/30 bg-sidebar-accent/30 px-1.5 py-0.5 text-[10px] text-sidebar-foreground w-auto min-w-0 [&_svg]:size-3"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAGE_SIZES.map((s) => (
+                      <SelectItem key={s} value={String(s)} className="text-xs">
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Page controls */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-0.5">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={goToFirstPage}
+                      disabled={page <= 1}
+                      className="rounded p-0.5 size-6"
+                    >
+                      <ChevronsLeft className="size-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-[10px]">
+                    Первая страница
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={goToPrevPage}
+                      disabled={page <= 1}
+                      className="rounded p-0.5 size-6"
+                    >
+                      <ChevronLeft className="size-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-[10px]">
+                    Назад
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+
+              {/* Page number input */}
+              <form onSubmit={handlePageInputSubmit} className="flex items-center gap-1">
+                <span className="text-[10px] text-sidebar-foreground/40">Стр.</span>
+                <SidebarInput
+                  type="text"
+                  value={pageInput}
+                  onChange={(e) => setPageInput(e.target.value)}
+                  onBlur={() => setPageInput(String(page))}
+                  className="w-8 h-auto px-1 py-0.5 text-[10px] text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <span className="text-[10px] text-sidebar-foreground/40">/ {totalPages}</span>
+              </form>
+
+              <div className="flex items-center gap-0.5">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={goToNextPage}
+                      disabled={page >= totalPages}
+                      className="rounded p-0.5 size-6"
+                    >
+                      <ChevronRight className="size-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-[10px]">
+                    Вперед
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={goToLastPage}
+                      disabled={page >= totalPages}
+                      className="rounded p-0.5 size-6"
+                    >
+                      <ChevronsRight className="size-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-[10px]">
+                    Последняя страница
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </div>
           </div>
         )}
       </SidebarGroupContent>
     </SidebarGroup>
   );
-}
-
-function formatCellValue(value: unknown): string {
-  if (value === null || value === undefined) return '—';
-  if (typeof value === 'boolean') return value ? '✓' : '✗';
-  if (typeof value === 'number') {
-    if (Number.isInteger(value)) return value.toLocaleString();
-    return value.toFixed(2);
-  }
-  if (typeof value === 'string' && !isNaN(Date.parse(value)) && value.includes('T')) {
-    const d = new Date(value);
-    return d.toLocaleString('ru-RU', {
-      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-    });
-  }
-  return String(value);
 }
