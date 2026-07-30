@@ -247,7 +247,7 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, onClear, className,
         ref={inputRef}
         value={message}
         disabled={!chatOpen || isSending}
-        placeholder="Type something..."
+        placeholder="Ваше сообщение..."
         onKeyDown={handleKeyDown}
         onChange={(e) => setMessage(e.target.value)}
         className="field-sizing-content max-h-16 min-h-8 flex-1 resize-none py-2 text-base [scrollbar-width:thin] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"      />
@@ -256,7 +256,7 @@ function AgentChatInput({ chatOpen, onSend = async () => {}, onClear, className,
         type="button"
         disabled={isDisabled}
         variant={isDisabled ? 'secondary' : 'default'}
-        title={isSending ? 'Sending...' : 'Send'}
+        title={isSending ? 'отправка...' : 'отправить'}
         onClick={handleButtonClick}
         className="self-end disabled:cursor-not-allowed"
       >
