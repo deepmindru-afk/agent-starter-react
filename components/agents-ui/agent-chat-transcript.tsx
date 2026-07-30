@@ -133,7 +133,13 @@ export function AgentChatTranscript({
                         variant={isUser ? 'secondary' : 'ghost'}
                       >
                         <BubbleContent>
-                          <Streamdown>{message}</Streamdown>
+                          <Streamdown
+  components={{
+    img: ({ node, ...props }) => <img {...props} alt={props.alt || ''} />,
+  }}
+>
+  {message}
+</Streamdown>
                         </BubbleContent>
                       </Bubble>
                     </MessageContent>
