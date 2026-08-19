@@ -1,7 +1,9 @@
 'use client';
 
 import { type ComponentProps } from 'react';
-import { Streamdown } from 'streamdown';
+import { defaultSchema } from 'hast-util-sanitize';
+import rehypeSanitize from 'rehype-sanitize';
+import { Streamdown, type StreamdownProps, defaultRehypePlugins } from 'streamdown';
 import { type AgentState, type ReceivedMessage } from '@livekit/components-react';
 import { AgentChatIndicator } from '@/components/agents-ui/agent-chat-indicator';
 import { Bubble, BubbleContent } from '@/components/ui/bubble';
@@ -16,11 +18,43 @@ import {
   MessageScrollerViewport,
 } from '@/components/ui/message-scroller';
 
+const chatRehypeSchema = {
+  ...defaultSchema,
+  protocols: {
+    ...(defaultSchema.protocols ?? {}),
+    src: [...(defaultSchema.protocols?.src ?? []), 'data'],
+  },
+  tagNames: [...(defaultSchema.tagNames ?? []), 'iframe'],
+  attributes: {
+    ...(defaultSchema.attributes ?? {}),
+    iframe: [
+      'allow',
+      'allowFullScreen',
+      'height',
+      'loading',
+      'name',
+      'referrerPolicy',
+      'sandbox',
+      'src',
+      'title',
+      'width',
+    ],
+  },
+};
+
+const chatRehypePlugins: NonNullable<StreamdownProps['rehypePlugins']> = [
+  defaultRehypePlugins.raw,
+  defaultRehypePlugins.katex,
+  [rehypeSanitize, chatRehypeSchema],
+  defaultRehypePlugins.harden,
+];
+
 /**
  * Props for the AgentChatTranscript component.
  */
 export interface AgentChatTranscriptProps
-  extends ComponentProps<'div'>,
+  extends
+    ComponentProps<'div'>,
     ComponentProps<typeof MessageScrollerProvider>,
     ComponentProps<typeof MessageScrollerViewport>,
     ComponentProps<typeof MessageScrollerContent> {
@@ -133,16 +167,7 @@ export function AgentChatTranscript({
                         variant={isUser ? 'secondary' : 'ghost'}
                       >
                         <BubbleContent>
-                          <Streamdown
-  components={{
-    img: ({ node, src, alt, ...props }) => {
-      console.log('Streamdown img src:', src); // Debug log
-      return <img src={String(src)} alt={alt || ''} {...props} />;
-    },
-  }}
->
-  {message}
-</Streamdown>
+                          <Streamdown rehypePlugins={chatRehypePlugins}>{message}</Streamdown>
                         </BubbleContent>
                       </Bubble>
                     </MessageContent>
